@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Aditya Rana's Website!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            }
+            .header {
+                padding: 5px 16px;
+                background: #3a3b3c;
+                color: #f1f1f1;
+                overflow: hidden;
+            }
+            .header a {
+                float:left;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14 px 16 px;
+                text-decoration: none;
+                font-size: 17px;
+                margin: 10px;
+            }
+            .header a:hover {
+                background-color: cadetblue;
+            }
+            .content {
+                padding: 16px;
+            }
+            .sticky {
+                position: fixed;
+                top: 0;
+                width: 100%;
+            }
+            @media only screen and (max-width: 767px){
+            .sticky + .content {
+                padding-top: 172px;
+            }}
+            @media screen and (min-width: 768px){
+                .sticky + .content {
+                padding-top: 132px;
+            }
+            }
+        </style>
+    </head>
+    <body style="padding: 0%;">
+        <div class="header" id="myHeader">
+            <h2>Aditya Rana's Website</h2>
+            <a href="/">Home</a>
+            <a href="LSTM">LSTM Stock Prediction</a>
+            <a href="Diabetes">Diabetes Classification</a>
+            <a href="https://www.linkedin.com/in/aditya-rana-043625241/" target="_blank">LinkedIn Profile</a>
+            <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
+        </div>
+        <div class="content"><h3>This is the Diabetes Classification page!</h3>
+            <p>This project uses Support Vector Machine (SVM) classifier model to predict whether someone could have diabetes or not.</p>
+            <p>SVM is a Machine Learning (ML) model which uses supervised learning to classify in this case the final outcome of different
+                medical readings (i.e. whether a patient has diabetes or not)
+            </p>
+            <p>The dataset used for this project can be found <a href="https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database">here</a>
+            by University of California, Irvine.
+            </p>
+            <form method="post">
+                <label for="pregnancies">Enter the number of pregnancies:</label>
+                <br>
+                <input type="number" name="pregnancies"
+                placeholder="Pregnancies"
+                value="{{ request.form['pregnancies']}}"></input>
+                <br>
+                <br>
+
+                <label for="glucose">Enter the Glucose level: (in mmol/L)</label>
+                <br>
+                <input type="number" name="glucose"
+                placeholder="Glucose"
+                value="{{request.form['glucose']}}"></input>
+                <br>
+                <br>
+
+                <label for="blood_pressure">Enter the Blood Pressure: (the lower of the two readings in mmHg)</label>
+                <br>
+                <input type="number" name="blood_pressure"
+                placeholder="Blood Pressure"
+                value="{{request.form['blood_pressure']}}"></input>
+                <br>
+                <br>
+
+                <label for="skin_thickness">Enter the Skin Thickness: (measurement taken from triceps)</label>
+                <br>
+                <input type="number" name="skin_thickness"
+                placeholder="Skin Thickness"
+                value="{{request.form['skin_thickness']}}"></input>
+                <br><br>
+
+                <label for="insulin">Enter the Insulin level: (in mIU/L)</label>
+                <br>
+                <input type="number" name="insulin"
+                placeholder="Insulin"
+                value="{{request.form['insulin']}}"></input>
+                <br><br>
+
+                <label for="bmi">Enter the Body Mass Index: (derived by dividing weight in kg by square of height in meters)</label>
+                <br>
+                <input type="number" step="any" name="bmi"
+                placeholder="BMI"
+                value="{{request.form['bmi']}}"></input>
+                <br><br>
+
+                <label for="diabetes_pedigree_function">Enter the Diabetes Pedigree Function value:</label>
+                <br>
+                <input type="number" step="any" name="dpf"
+                placeholder="Diabetes Pedigree Function"
+                value="{{request.form['dpf']}}"></input>
+
+                <br><br>
+
+                <label for="age">Enter Age:</label>
+                <br>
+                <input type="number" name="age"
+                placeholder="Age"
+                value="{{request.form['age']}}"></input>
+
+                <br><br>
+                <button type="submit">Submit</button>
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul>
+                        {% for message in messages %}
+                        <li>{{ message }}</li>
+                        {% endfor %}
+                     </ul>
+                {% endif %}
+            {% endwith %}
+            </div>
+    
+            <script>
+                window.onscroll = function() {myFunction()};
+                var header = document.getElementById("myHeader");
+                var sticky = header.offsetTop;
+
+                function myFunction() {
+                    if (window.pageYOffset > sticky) {
+                        header.classList.add("sticky");
+                    }
+                    else {
+                        header.classList.remove("sticky");
+                    }
+                }
+            </script>
+        </body>
+</html>

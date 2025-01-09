@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Aditya Rana's Website!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            }
+            .header {
+                padding: 5px 16px;
+                background: #3a3b3c;
+                color: #f1f1f1;
+                overflow: hidden;
+            }
+            .header a {
+                float:left;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14 px 16 px;
+                text-decoration: none;
+                font-size: 17px;
+                margin: 10px;
+            }
+            .header a:hover {
+                background-color: cadetblue;
+            }
+            .content {
+                padding: 16px;
+            }
+            .sticky {
+                position: fixed;
+                top: 0;
+                width: 100%;
+            }
+
+            .sticky + .content {
+                padding-top: 132px;
+            }
+        </style>
+    </head>
+    <body style="padding: 0%;">
+        <div class="header" id="myHeader">
+            <h2>Aditya Rana's Website</h2>
+            <a href="/">Home</a>
+            <a href="LSTM">LSTM Stock Prediction</a>
+            <a href="Diabetes">Diabetes Classification</a>
+            <a href="https://www.linkedin.com/in/aditya-rana-043625241/" target="_blank">LinkedIn Profile</a>
+            <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
+        </div>
+        <div class="content" style="margin: 10%;"><h3>Classification results:</h3>
+            <!-- <p>Here are the inputs:</p>
+            <p>Pregnancies: {{pregnancies}}</p>  
+            <p>Glucose level: {{glucose}}</p>
+            <p>Blood Pressure: {{bp}}</p>
+            <p>Skin Thickness: {{skin_thickness}}</p>
+            <p>Insulin: {{insulin}}</p>
+            <p>BMI: {{bmi}}</p>
+            <p>Diabetes Pedigree Function: {{dpf}}</p>
+            <p>Age: {{age}}</p> -->
+            <p>Based on the input, you could potentially be {{prediction}}</p>
+        </div>
+    
+            <script>
+                window.onscroll = function() {myFunction()};
+                var header = document.getElementById("myHeader");
+                var sticky = header.offsetTop;
+
+                function myFunction() {
+                    if (window.pageYOffset > sticky) {
+                        header.classList.add("sticky");
+                    }
+                    else {
+                        header.classList.remove("sticky");
+                    }
+                }
+            </script>
+        </body>
+</html>

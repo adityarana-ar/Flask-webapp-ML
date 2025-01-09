@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Aditya Rana's Website!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv='cache-control' content='no-cache'>
+        <meta http-equiv='expires' content='0'>
+        <meta http-equiv='pragma' content='no-cache'>
+        <style>
+            body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            }
+            .header {
+                padding: 5px 16px;
+                background: #3a3b3c;
+                color: #f1f1f1;
+                overflow: hidden;
+            }
+            .header a {
+                float:left;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14 px 16 px;
+                text-decoration: none;
+                font-size: 17px;
+                margin: 10px;
+            }
+            .header a:hover {
+                background-color: cadetblue;
+            }
+            .content {
+                padding: 16px;
+            }
+            .sticky {
+                position: fixed;
+                top: 0;
+                width: 100%;
+            }
+
+            .sticky + .content {
+                padding-top: 132px;
+            }
+        </style>
+    </head>
+    <body style="padding: 0%;">
+        <div class="header" id="myHeader">
+            <h2>Aditya Rana's Website</h2>
+            <a href="/">Home</a>
+            <a href="LSTM">LSTM Stock Prediction</a>
+            <a href="Diabetes">Diabetes Classification</a>
+            <a href="https://www.linkedin.com/in/aditya-rana-043625241/" target="_blank">LinkedIn Profile</a>
+            <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
+        </div>
+        <div class="content" style="margin: 10%;"><h3>Prediction:</h3>
+            <p>You entered the ticker: {{ticker}}</p>
+            <img src="{{img1}}">
+            <br><br>
+            <img src="{{img2}}">
+            </div>
+    
+            <script>
+                window.onscroll = function() {myFunction()};
+                var header = document.getElementById("myHeader");
+                var sticky = header.offsetTop;
+                // $(document).ready(function(){
+                // jQuery('img').each(function(){
+                // jQuery(this).attr('src',jQuery(this).attr('src')+ '?' + (new Date()).getTime());
+                // });
+                // });
+                
+                // document.getElementById('{{img1}}').src = document.getElementById('{{img1}}').src + '?' + (new Date()).getTime();
+                // document.getElementById('{{img2}}').src = document.getElementById('{{img2}}').src + '?' + (new Date()).getTime();
+                
+                function myFunction() {
+                    if (window.pageYOffset > sticky) {
+                        header.classList.add("sticky");
+                    }
+                    else {
+                        header.classList.remove("sticky");
+                    }
+                }
+            </script>
+        </body>
+</html>
