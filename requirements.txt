@@ -1,0 +1,11 @@
+Flask
+flask-cachecontrol
+pandas
+yfinance
+numpy
+scikit-learn
+tensorflow
+keras
+matplotlib
+seaborn
+pillow

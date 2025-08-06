@@ -11,8 +11,6 @@ Original file is located at
 import pandas as pd
 import yfinance as yf
 import numpy as np
-# ! pip install pandas_ta==0.2.45b
-import pandas_ta as ta
 from sklearn.preprocessing import MinMaxScaler
 from keras import optimizers
 from keras.models import Model
@@ -21,24 +19,39 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 # Importing dataframe from yahoo finance
-df = yf.download(tickers = 'AAPL', period="2y")
+df = yf.download(tickers="AAPL", period="2y")
 # print(df) # preview of df
 
 # Adding other indicators
 og_dates = df.index
-df['RSI'] = ta.rsi(df.Close, length=15) #RSI
-df['EMAF'] = ta.ema(df.Close, length=20) # Exponential Moving Average with short period
-df['EMAM'] = ta.ema(df.Close, length=60) # EMA with medium period
-df['EMAS'] = ta.ema(df.Close, length=100) # EMA with long period
-df['Target'] = df['Adj Close'].shift(-1) # Next day's Adjusted Closing price
+# --- Replacing pandas_ta indicators with pandas/numpy implementations ---
+# EMA using pandas
+df["EMAF"] = df["Close"].ewm(span=20, adjust=False).mean()
+df["EMAM"] = df["Close"].ewm(span=60, adjust=False).mean()
+df["EMAS"] = df["Close"].ewm(span=100, adjust=False).mean()
+
+
+# RSI implementation
+def compute_rsi(series, period=15):
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
+
+
+df["RSI"] = compute_rsi(df["Close"], period=15)
+# --- End replacement ---
+
+df["Target"] = df["Close"].shift(-1)  # Next day's Adjusted Closing price
 df = df.dropna()
 # Separating the dates as they are the index here
 dates = df.index
 indeces = []
 for i in range(len(dates)):
-  indeces.append(i)
+    indeces.append(i)
 df.index = indeces
-df['Date'] = dates
+df["Date"] = dates
 # print(df.index)
 # df.head(20)
 og_df = df
@@ -60,7 +73,7 @@ df = df[cols].astype(float)
 
 # print(df)
 
-scaler = MinMaxScaler(feature_range=(0,1))
+scaler = MinMaxScaler(feature_range=(0, 1))
 df_scaled = scaler.fit_transform(df)
 # print(df_scaled)
 # print(df_scaled.shape)
@@ -69,19 +82,20 @@ X_train = []
 
 # df_scaled.shape
 
-pastcandles = 30 # past number of days to train the model on
+pastcandles = 30  # past number of days to train the model on
+num_features = df.shape[1]  # dynamically get number of features
 
-for i in range(9): # appending columns and values for the pastcandles to X_train
-  X_train.append([])
-  for j in range(pastcandles, df_scaled.shape[0]):
-    X_train[i].append(df_scaled[j-pastcandles:j, i])
+for i in range(num_features):  # appending columns and values for the pastcandles to X_train
+    X_train.append([])
+    for j in range(pastcandles, df_scaled.shape[0]):
+        X_train[i].append(df_scaled[j - pastcandles : j, i])
 
 # print(X_train)
 # Moving X axis from 0 to 2
 X_train = np.moveaxis(X_train, [0], [2])
 
 X_train = np.array(X_train)
-Y = np.array(df_scaled[pastcandles:,-1])
+Y = np.array(df_scaled[pastcandles:, -1])
 # Reshaping Y
 Y = np.reshape(Y, (len(Y), 1))
 
@@ -90,7 +104,7 @@ Y = np.reshape(Y, (len(Y), 1))
 
 # Splitting between training and testing data
 
-ratio = int(len(X_train)*0.8)
+ratio = int(len(X_train) * 0.8)
 X_train, X_test = X_train[:ratio], X_train[ratio:]
 Y_train, Y_test = Y[:ratio], Y[ratio:]
 
@@ -102,14 +116,16 @@ Y_train, Y_test = Y[:ratio], Y[ratio:]
 
 # Making the model
 
-lstm = Input(shape=(pastcandles, 9), name='LSTM_input')
-lstm_input = LSTM(150, name='First_layer')(lstm) # LSTM layer with 150 nodes
-lstm_input = Dense(1, name='Dense_layer')(lstm_input) # Dense layer with 1 node
-result = Activation('linear', name='Result')(lstm_input)
+lstm = Input(shape=(pastcandles, num_features), name="LSTM_input")
+lstm_input = LSTM(150, name="First_layer")(lstm)  # LSTM layer with 150 nodes
+lstm_input = Dense(1, name="Dense_layer")(lstm_input)  # Dense layer with 1 node
+result = Activation("linear", name="Result")(lstm_input)
 model = Model(inputs=lstm, outputs=result)
 adam = optimizers.Adam()
-model.compile(optimizer=adam, loss='mse')
-model.fit(x=X_train, y=Y_train, batch_size=15, epochs=30, shuffle=True, validation_split=0.1)
+model.compile(optimizer=adam, loss="mse")
+model.fit(
+    x=X_train, y=Y_train, batch_size=15, epochs=30, shuffle=True, validation_split=0.1
+)
 
 # lstm_input = Input(shape=(pastcandles, 9), name='lstm_input')
 # inputs = LSTM(150, name='first_layer')(lstm_input)
@@ -127,34 +143,39 @@ Prediction = model.predict(X_test)
 
 # Using inverse transform to turn it into stock prices for comparison
 
-Y_pred = scaler.inverse_transform(np.repeat(Prediction, df_scaled.shape[1], axis=-1))[:,0]
+Y_pred = scaler.inverse_transform(np.repeat(Prediction, df_scaled.shape[1], axis=-1))[
+    :, 0
+]
 
 # Adding dates to the predicition
 
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
+
 us_bd = CustomBusinessDay(calendar=USFederalHolidayCalendar())
-forecast_dates = pd.date_range(list(dates)[-len(X_test)], periods=len(Y_pred), freq=us_bd).tolist()
+forecast_dates = pd.date_range(
+    list(dates)[-len(X_test)], periods=len(Y_pred), freq=us_bd
+).tolist()
 
 prediction_dates = []
 
 for time in forecast_dates:
-  prediction_dates.append(time.date())
+    prediction_dates.append(time.date())
 
 # print(prediction_dates)
 
-forecast = pd.DataFrame({'Date':np.array(prediction_dates), 'Target':Y_pred})
-forecast['Date'] = pd.to_datetime(forecast['Date'])
+forecast = pd.DataFrame({"Date": np.array(prediction_dates), "Target": Y_pred})
+forecast["Date"] = pd.to_datetime(forecast["Date"])
 # original_df = df['Target']
 
 # og_dates = dates>='2022-08-22'
 
-lst = ['Target', 'Date']
+lst = ["Target", "Date"]
 
 
 original_df = og_df[lst]
-original_df['Date'] = pd.to_datetime(original_df['Date'])
-original_df = original_df.loc[original_df['Date']>='2022-01-01']
+original_df["Date"] = pd.to_datetime(original_df["Date"])
+original_df = original_df.loc[original_df["Date"] >= "2022-01-01"]
 
 # original_df = pd.DateFrame({'Date':dates>='2022'})
 # print(original_df.head(20))
@@ -168,21 +189,28 @@ original_df = original_df.loc[original_df['Date']>='2022-01-01']
 # original_df = original_df.loc[original_df['Date']>='2022-8-22']
 
 # # Plotting
-figure = plt.figure(figsize=(10,5))
+figure = plt.figure(figsize=(10, 5))
 
-sns.lineplot(x=original_df['Date'], y=original_df['Target'], label="Original closing prices")
-sns.lineplot(x=forecast['Date'], y=forecast['Target'], label="Forecasted closing prices")
+sns.lineplot(
+    x=original_df["Date"], y=original_df["Target"], label="Original closing prices"
+)
+sns.lineplot(
+    x=forecast["Date"], y=forecast["Target"], label="Forecasted closing prices"
+)
 plt.legend()
 figure.savefig("verification.png")
 plt.show()
 from pandas.core.api import DateOffset
+
 # Now predicting for the next 5 days
 
 futurecandles = 10
 
 # Getting the dates in the future
 
-futuredates = pd.date_range(list(og_dates)[-1], periods=futurecandles, freq=us_bd).tolist()
+futuredates = pd.date_range(
+    list(og_dates)[-1], periods=futurecandles, freq=us_bd
+).tolist()
 
 # for day in futuredates:
 #   print(day + DateOffset(day=2))
@@ -193,17 +221,21 @@ futuredates = pd.to_datetime(futuredates)
 
 future_prediction = model.predict(X_test[-futurecandles:])
 # future_prediction = np.repeat(future_prediction, df_scaled.shape[1], axis=-1)
-future_prediction = scaler.inverse_transform(np.repeat(future_prediction, df_scaled.shape[1], axis=-1))[:,0]
+future_prediction = scaler.inverse_transform(
+    np.repeat(future_prediction, df_scaled.shape[1], axis=-1)
+)[:, 0]
 # print(Y_pred.shape)
 
-output = pd.DataFrame({'Date':np.array(futuredates)})
-output['Target'] = future_prediction
+output = pd.DataFrame({"Date": np.array(futuredates)})
+output["Target"] = future_prediction
 
 
 # Plotting graph
-figure1 = plt.figure(figsize=(10,5))
+figure1 = plt.figure(figsize=(10, 5))
 
-sns.lineplot(x=futuredates, y=future_prediction, label="Future closing prices prediction")
+sns.lineplot(
+    x=futuredates, y=future_prediction, label="Future closing prices prediction"
+)
 plt.legend()
 figure1.savefig("prediction.png")
 plt.show()
