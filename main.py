@@ -1,10 +1,8 @@
 import os
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
 
-# from flask_caching import Cache
-from flask_cachecontrol import (
-    dont_cache,
-)
+# Import the S&P 500 forecaster
+from sp500_forecaster import forecaster
 
 app = Flask(__name__)
 img = os.path.join("static", "Image")
@@ -198,22 +196,139 @@ def diabetes():
     return render_template("Diabetes.html")
 
 
-ticker = ""
+from flask_caching import Cache
+
+cache = Cache(app, config={"Cache-TYPE": "SimpleCache", "Cache_DEFAULT_TIMEOUT": 300})
+
+
+@app.route("/SP500", methods=("GET", "POST"))
+def sp500_forecasts():
+    """Display S&P 500 stock forecasts (read-only: no heavy generation here)"""
+    try:
+        # Strictly load cached forecasts only (get_all_forecasts already just reads files)
+        all_forecasts = forecaster.get_all_forecasts()
+        if not all_forecasts:
+            return render_template(
+                "SP500_Results.html",
+                forecasts={},
+                total_forecasts=0,
+                last_updated_count=0,
+                avg_prediction_change=0,
+                last_update=(
+                    forecaster.last_update.strftime("%Y-%m-%d %H:%M")
+                    if forecaster.last_update
+                    else None
+                ),
+                error="No cached forecasts found. They may still be generating in the background.",
+            )
+
+        import yfinance as yf
+        from datetime import datetime
+
+        forecasts_with_prices = {}
+        total_forecasts = len(all_forecasts)
+        last_updated_count = 0
+        prediction_changes = []
+
+        tickers = list(all_forecasts.keys())
+        try:
+            current_price = yf.download(tickers=tickers, period="1d", group_by="ticker")
+        except Exception as e:
+            print("yfinance download error:", e)
+            current_price = None
+
+        for ticker, forecast_df in all_forecasts.items():
+            try:
+                next_day_prediction = (
+                    float(forecast_df.iloc[0]["Predicted_Close"])
+                    if not forecast_df.empty
+                    else None
+                )
+                change_percentage = None
+                price = None
+                if current_price is not None:
+                    if ticker in current_price:  # multi-ticker style
+                        price_df = current_price[ticker]
+                        if not price_df.empty and "Close" in price_df.columns:
+                            price = price_df["Close"].iloc[0]
+                    elif (
+                        hasattr(current_price, "columns")
+                        and "Close" in current_price.columns
+                    ):  # single ticker fallback
+                        price = current_price["Close"].iloc[0]
+                if price is not None and next_day_prediction is not None and price != 0:
+                    change_percentage = ((next_day_prediction - price) / price) * 100.0
+                    prediction_changes.append(change_percentage)
+
+                last_updated = None
+                forecast_path = os.path.join(
+                    forecaster.predictions_dir, f"{ticker}_forecast.csv"
+                )
+                if os.path.exists(forecast_path):
+                    file_time = datetime.fromtimestamp(os.path.getmtime(forecast_path))
+                    if file_time.date() == datetime.now().date():
+                        last_updated_count += 1
+                    last_updated = file_time.strftime("%Y-%m-%d %H:%M")
+
+                forecasts_with_prices[ticker] = {
+                    "next_day_prediction": next_day_prediction,
+                    "current_price": price,
+                    "change_percentage": change_percentage,
+                    "last_updated": last_updated,
+                }
+            except Exception as inner_e:
+                print(f"Error processing {ticker}: {inner_e}")
+                continue
+
+        avg_prediction_change = (
+            (sum(prediction_changes) / len(prediction_changes))
+            if prediction_changes
+            else 0
+        )
+        last_update = (
+            forecaster.last_update.strftime("%Y-%m-%d %H:%M")
+            if forecaster.last_update
+            else None
+        )
+        return render_template(
+            "SP500_Results.html",
+            forecasts=forecasts_with_prices,
+            total_forecasts=total_forecasts,
+            last_updated_count=last_updated_count,
+            avg_prediction_change=avg_prediction_change,
+            last_update=last_update,
+        )
+    except Exception as e:
+        print(f"Error in SP500 route: {e}")
+        return render_template(
+            "SP500_Results.html",
+            error=f"Error loading forecasts: {str(e)}",
+            forecasts={},
+            total_forecasts=0,
+            last_updated_count=0,
+            avg_prediction_change=0,
+            last_update=(
+                forecaster.last_update.strftime("%Y-%m-%d %H:%M")
+                if forecaster.last_update
+                else None
+            ),
+        )
+
+
+from flask_cachecontrol import dont_cache
 
 
 @app.route("/LSTM", methods=("GET", "POST"))
 @dont_cache()
 def LSTM():
+    """Legacy LSTM route for individual stock prediction"""
     if request.method == "POST":
-        ticker = request.form["ticker"]
-        # pcandles = request.form['pcandles']
-        # fcandles = request.form['fcandles']
+        raw_ticker = request.form["ticker"].strip().upper()
+        # Sanitize (map '.' to '-' for tickers like BRK.B)
+        ticker = raw_ticker.replace(".", "-")
         if not ticker:
             flash(message="Please enter a valid Stock ticker")
-        # if not pcandles:
-        #     flash(message="You must enter a valid number for the number of past candles to check.")
-        # if not fcandles:
-        #     flash(message="You must enter a valid number for the number of days to predict the closing prices for.")
+            return render_template("LSTM.html")
         try:
             import pandas as pd
             import yfinance as yf
@@ -239,12 +354,14 @@ def LSTM():
             from matplotlib import pyplot as plt
             import seaborn as sns
 
-            # Importing dataframe from yahoo finance
             df = yf.download(tickers=ticker, period="3y")
+            if df is None or df.empty:
+                flash(
+                    "No data returned for ticker. Please check the symbol or try later."
+                )
+                return render_template("LSTM.html")
 
-            # Adding other indicators
             og_dates = df.index
-            # --- Replacing pandas_ta indicators with pandas/numpy implementations ---
             df["EMAF"] = df["Close"].ewm(span=20, adjust=False).mean()
             df["EMAM"] = df["Close"].ewm(span=60, adjust=False).mean()
             df["EMAS"] = df["Close"].ewm(span=100, adjust=False).mean()
@@ -257,15 +374,13 @@ def LSTM():
                 return 100 - (100 / (1 + rs))
 
             df["RSI"] = compute_rsi(df["Close"], period=15)
-            # --- End replacement ---
-            df["Target"] = df["Close"].shift(-1)  # Next day's Adjusted Closing price
+            df["Target"] = df["Close"].shift(-1)
             df = df.dropna()
-            # Separating the dates as they are the index here
+            if df.empty or len(df) < 60:
+                flash("Insufficient historical data after preprocessing.")
+                return render_template("LSTM.html")
             dates = df.index
-            indeces = []
-            for i in range(len(dates)):
-                indeces.append(i)
-            df.index = indeces
+            df.index = range(len(dates))
             df["Date"] = dates
             og_df = df
             cols = list(df)
@@ -276,7 +391,7 @@ def LSTM():
             scaler = MinMaxScaler(feature_range=(0, 1))
             df_scaled = scaler.fit_transform(df)
             X_train = []
-            pastcandles = 30  # past number of days to train the model on
+            pastcandles = 30
             num_features = df.shape[1]
             for i in range(num_features):
                 X_train.append([])
@@ -287,15 +402,14 @@ def LSTM():
             Y = np.array(df_scaled[pastcandles:, -1])
             Y = np.reshape(Y, (len(Y), 1))
             ratio = int(len(X_train) * 0.8)
+            if ratio == 0 or len(X_train) - ratio == 0:
+                flash("Not enough data to split into train/test sets.")
+                return render_template("LSTM.html")
             X_train, X_test = X_train[:ratio], X_train[ratio:]
             Y_train, Y_test = Y[:ratio], Y[ratio:]
             lstm = Input(shape=(pastcandles, num_features), name="LSTM_input")
-            lstm_input = LSTM(150, name="First_layer")(
-                lstm
-            )  # LSTM layer with 150 nodes
-            lstm_input = Dense(1, name="Dense_layer")(
-                lstm_input
-            )  # Dense layer with 1 node
+            lstm_input = LSTM(150, name="First_layer")(lstm)
+            lstm_input = Dense(1, name="Dense_layer")(lstm_input)
             result = Activation("linear", name="Result")(lstm_input)
             model = Model(inputs=lstm, outputs=result)
             adam = optimizers.Adam()
@@ -319,17 +433,18 @@ def LSTM():
             forecast_dates = pd.date_range(
                 list(dates)[-len(X_test)], periods=len(Y_pred), freq=us_bd
             ).tolist()
-            prediction_dates = []
-            for time in forecast_dates:
-                prediction_dates.append(time.date())
+            prediction_dates = [time.date() for time in forecast_dates]
             forecast = pd.DataFrame(
                 {"Date": np.array(prediction_dates), "Target": Y_pred}
             )
             forecast["Date"] = pd.to_datetime(forecast["Date"])
-            lst = ["Target", "Date"]
-            original_df = og_df[lst]
+            lst_cols = ["Target", "Date"]
+            original_df = og_df[lst_cols]
             original_df["Date"] = pd.to_datetime(original_df["Date"])
             original_df = original_df.loc[original_df["Date"] >= "2022-01-01"]
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+
             figure = plt.figure(figsize=(10, 5))
             sns.lineplot(
                 x=original_df["Date"],
@@ -342,7 +457,9 @@ def LSTM():
                 label="Forecasted closing prices",
             )
             plt.legend()
-            figure.savefig("static/Image/verification.png")
+            os.makedirs("static/Image", exist_ok=True)
+            verification_path = os.path.join("static/Image", "verification.png")
+            figure.savefig(verification_path)
             futurecandles = 10
             futuredates = pd.date_range(
                 list(og_dates)[-1], periods=futurecandles, freq=us_bd
@@ -352,8 +469,6 @@ def LSTM():
             future_prediction = scaler.inverse_transform(
                 np.repeat(future_prediction, df_scaled.shape[1], axis=-1)
             )[:, 0]
-            output = pd.DataFrame({"Date": np.array(futuredates)})
-            output["Target"] = future_prediction
             figure1 = plt.figure(figsize=(10, 5))
             sns.lineplot(
                 x=futuredates,
@@ -361,22 +476,20 @@ def LSTM():
                 label="Future closing prices prediction",
             )
             plt.legend()
-            figure1.savefig("static/Image/prediction.png")
-            from PIL import Image
-            import base64
-            import io
-
-            file1 = os.path.join(img, "verification.png")
-            file2 = os.path.join(img, "prediction.png")
+            prediction_path = os.path.join("static/Image", "prediction.png")
+            figure1.savefig(prediction_path)
             return render_template(
-                "LSTM_Results.html", img1=file1, img2=file2, ticker=ticker
+                "LSTM_Results.html",
+                img1=verification_path,
+                img2=prediction_path,
+                ticker=raw_ticker,
             )
         except Exception as e:
             import traceback
 
             print("Exception in /LSTM:", e)
             traceback.print_exc()
-            flash("An error ocurred. Try using valid parameters for the web form.")
+            flash("Internal error while generating forecast. Please try again later.")
     return render_template("LSTM.html")
 
 

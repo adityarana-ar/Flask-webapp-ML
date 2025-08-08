@@ -1,0 +1,447 @@
+{
+  "AAPL": {
+    "last_updated": "2025-08-07T18:22:55.461165",
+    "forecast_path": "forecast_data/predictions/AAPL_forecast.csv",
+    "next_day_prediction": 215.03535049734
+  },
+  "MSFT": {
+    "last_updated": "2025-08-07T18:23:15.262580",
+    "forecast_path": "forecast_data/predictions/MSFT_forecast.csv",
+    "next_day_prediction": 518.5371819699794
+  },
+  "GOOGL": {
+    "last_updated": "2025-08-07T18:23:33.696996",
+    "forecast_path": "forecast_data/predictions/GOOGL_forecast.csv",
+    "next_day_prediction": 193.85203166055635
+  },
+  "AMZN": {
+    "last_updated": "2025-08-07T18:23:52.408018",
+    "forecast_path": "forecast_data/predictions/AMZN_forecast.csv",
+    "next_day_prediction": 219.0975681648183
+  },
+  "NVDA": {
+    "last_updated": "2025-08-07T18:24:10.452322",
+    "forecast_path": "forecast_data/predictions/NVDA_forecast.csv",
+    "next_day_prediction": 175.56300802682884
+  },
+  "META": {
+    "last_updated": "2025-08-07T18:24:28.847323",
+    "forecast_path": "forecast_data/predictions/META_forecast.csv",
+    "next_day_prediction": 764.6131207384169
+  },
+  "BRK-B": {
+    "last_updated": "2025-08-07T18:24:45.220551",
+    "forecast_path": "forecast_data/predictions/BRK-B_forecast.csv",
+    "next_day_prediction": 473.47404344388633
+  },
+  "LLY": {
+    "last_updated": "2025-08-07T18:25:02.519628",
+    "forecast_path": "forecast_data/predictions/LLY_forecast.csv",
+    "next_day_prediction": 757.644086425993
+  },
+  "TSLA": {
+    "last_updated": "2025-08-07T18:25:20.177826",
+    "forecast_path": "forecast_data/predictions/TSLA_forecast.csv",
+    "next_day_prediction": 299.57402466101394
+  },
+  "UNH": {
+    "last_updated": "2025-08-07T18:25:36.209804",
+    "forecast_path": "forecast_data/predictions/UNH_forecast.csv",
+    "next_day_prediction": 289.68418020264016
+  },
+  "JNJ": {
+    "last_updated": "2025-08-07T18:25:52.352607",
+    "forecast_path": "forecast_data/predictions/JNJ_forecast.csv",
+    "next_day_prediction": 170.80109020149393
+  },
+  "JPM": {
+    "last_updated": "2025-08-07T18:26:08.427499",
+    "forecast_path": "forecast_data/predictions/JPM_forecast.csv",
+    "next_day_prediction": 288.6409477050911
+  },
+  "V": {
+    "last_updated": "2025-08-07T18:26:24.758700",
+    "forecast_path": "forecast_data/predictions/V_forecast.csv",
+    "next_day_prediction": 337.3805955403659
+  },
+  "PG": {
+    "last_updated": "2025-08-07T18:26:40.518486",
+    "forecast_path": "forecast_data/predictions/PG_forecast.csv",
+    "next_day_prediction": 156.3226904368821
+  },
+  "XOM": {
+    "last_updated": "2025-08-07T18:26:56.707479",
+    "forecast_path": "forecast_data/predictions/XOM_forecast.csv",
+    "next_day_prediction": 106.79899380809638
+  },
+  "HD": {
+    "last_updated": "2025-08-07T18:27:13.534537",
+    "forecast_path": "forecast_data/predictions/HD_forecast.csv",
+    "next_day_prediction": 389.41833939788194
+  },
+  "CVX": {
+    "last_updated": "2025-08-07T18:27:29.203614",
+    "forecast_path": "forecast_data/predictions/CVX_forecast.csv",
+    "next_day_prediction": 152.31335409205758
+  },
+  "MA": {
+    "last_updated": "2025-08-07T18:27:45.065993",
+    "forecast_path": "forecast_data/predictions/MA_forecast.csv",
+    "next_day_prediction": 582.9180822099042
+  },
+  "PFE": {
+    "last_updated": "2025-08-07T18:28:01.254521",
+    "forecast_path": "forecast_data/predictions/PFE_forecast.csv",
+    "next_day_prediction": 24.674660877881593
+  },
+  "ABBV": {
+    "last_updated": "2025-08-07T18:28:17.462752",
+    "forecast_path": "forecast_data/predictions/ABBV_forecast.csv",
+    "next_day_prediction": 201.36717925860287
+  },
+  "KO": {
+    "last_updated": "2025-08-07T18:28:33.966165",
+    "forecast_path": "forecast_data/predictions/KO_forecast.csv",
+    "next_day_prediction": 70.1240709121796
+  },
+  "PEP": {
+    "last_updated": "2025-08-07T18:28:49.734972",
+    "forecast_path": "forecast_data/predictions/PEP_forecast.csv",
+    "next_day_prediction": 144.08063737448492
+  },
+  "COST": {
+    "last_updated": "2025-08-07T18:29:05.954264",
+    "forecast_path": "forecast_data/predictions/COST_forecast.csv",
+    "next_day_prediction": 951.6363617773696
+  },
+  "TMO": {
+    "last_updated": "2025-08-07T18:29:21.614682",
+    "forecast_path": "forecast_data/predictions/TMO_forecast.csv",
+    "next_day_prediction": 470.55109795179305
+  },
+  "DHR": {
+    "last_updated": "2025-08-07T18:29:37.370980",
+    "forecast_path": "forecast_data/predictions/DHR_forecast.csv",
+    "next_day_prediction": 199.64130630668774
+  },
+  "ACN": {
+    "last_updated": "2025-08-07T18:29:53.391296",
+    "forecast_path": "forecast_data/predictions/ACN_forecast.csv",
+    "next_day_prediction": 255.52434079710122
+  },
+  "WMT": {
+    "last_updated": "2025-08-07T18:30:08.812389",
+    "forecast_path": "forecast_data/predictions/WMT_forecast.csv",
+    "next_day_prediction": 104.66426717292097
+  },
+  "NEE": {
+    "last_updated": "2025-08-07T18:30:24.209203",
+    "forecast_path": "forecast_data/predictions/NEE_forecast.csv",
+    "next_day_prediction": 71.12607155116416
+  },
+  "MRK": {
+    "last_updated": "2025-08-07T18:30:40.033170",
+    "forecast_path": "forecast_data/predictions/MRK_forecast.csv",
+    "next_day_prediction": 81.89966256091247
+  },
+  "VZ": {
+    "last_updated": "2025-08-07T18:30:55.560776",
+    "forecast_path": "forecast_data/predictions/VZ_forecast.csv",
+    "next_day_prediction": 43.75969486825966
+  },
+  "CMCSA": {
+    "last_updated": "2025-08-07T18:31:11.410769",
+    "forecast_path": "forecast_data/predictions/CMCSA_forecast.csv",
+    "next_day_prediction": 32.5734626977553
+  },
+  "ADBE": {
+    "last_updated": "2025-08-07T18:31:29.006488",
+    "forecast_path": "forecast_data/predictions/ADBE_forecast.csv",
+    "next_day_prediction": 345.4031710912386
+  },
+  "PM": {
+    "last_updated": "2025-08-07T18:31:44.967805",
+    "forecast_path": "forecast_data/predictions/PM_forecast.csv",
+    "next_day_prediction": 159.15902424842895
+  },
+  "TXN": {
+    "last_updated": "2025-08-07T18:32:00.474588",
+    "forecast_path": "forecast_data/predictions/TXN_forecast.csv",
+    "next_day_prediction": 189.69276957906914
+  },
+  "UNP": {
+    "last_updated": "2025-08-07T18:32:15.855430",
+    "forecast_path": "forecast_data/predictions/UNP_forecast.csv",
+    "next_day_prediction": 222.09482111506622
+  },
+  "RTX": {
+    "last_updated": "2025-08-07T18:32:31.973750",
+    "forecast_path": "forecast_data/predictions/RTX_forecast.csv",
+    "next_day_prediction": 154.9195678550168
+  },
+  "NFLX": {
+    "last_updated": "2025-08-07T18:32:47.551175",
+    "forecast_path": "forecast_data/predictions/NFLX_forecast.csv",
+    "next_day_prediction": 1148.8678147751662
+  },
+  "QCOM": {
+    "last_updated": "2025-08-07T18:33:05.274294",
+    "forecast_path": "forecast_data/predictions/QCOM_forecast.csv",
+    "next_day_prediction": 148.11641743077962
+  },
+  "HON": {
+    "last_updated": "2025-08-07T18:33:22.091763",
+    "forecast_path": "forecast_data/predictions/HON_forecast.csv",
+    "next_day_prediction": 223.03939616178195
+  },
+  "INTC": {
+    "last_updated": "2025-08-07T18:33:54.645080",
+    "forecast_path": "forecast_data/predictions/INTC_forecast.csv",
+    "next_day_prediction": 20.50352094094326
+  },
+  "MS": {
+    "last_updated": "2025-08-07T18:34:11.235565",
+    "forecast_path": "forecast_data/predictions/MS_forecast.csv",
+    "next_day_prediction": 142.88290084494508
+  },
+  "CAT": {
+    "last_updated": "2025-08-07T18:34:29.000923",
+    "forecast_path": "forecast_data/predictions/CAT_forecast.csv",
+    "next_day_prediction": 424.1830294755191
+  },
+  "AMAT": {
+    "last_updated": "2025-08-07T18:34:46.053928",
+    "forecast_path": "forecast_data/predictions/AMAT_forecast.csv",
+    "next_day_prediction": 180.3788353794189
+  },
+  "SPGI": {
+    "last_updated": "2025-08-07T18:35:03.123266",
+    "forecast_path": "forecast_data/predictions/SPGI_forecast.csv",
+    "next_day_prediction": 567.5877081752697
+  },
+  "INTU": {
+    "last_updated": "2025-08-07T18:35:21.359923",
+    "forecast_path": "forecast_data/predictions/INTU_forecast.csv",
+    "next_day_prediction": 748.2432548115885
+  },
+  "VRTX": {
+    "last_updated": "2025-08-07T18:35:37.341516",
+    "forecast_path": "forecast_data/predictions/VRTX_forecast.csv",
+    "next_day_prediction": 120.76478958658119
+  },
+  "ISRG": {
+    "last_updated": "2025-08-07T18:35:53.410906",
+    "forecast_path": "forecast_data/predictions/ISRG_forecast.csv",
+    "next_day_prediction": 217.85788425398823
+  },
+  "GILD": {
+    "last_updated": "2025-08-07T18:36:09.043511",
+    "forecast_path": "forecast_data/predictions/GILD_forecast.csv",
+    "next_day_prediction": 106.70332253073866
+  },
+  "T": {
+    "last_updated": "2025-08-07T18:36:25.494452",
+    "forecast_path": "forecast_data/predictions/T_forecast.csv",
+    "next_day_prediction": 193.61410598766813
+  },
+  "ADI": {
+    "last_updated": "2025-08-07T18:36:42.526055",
+    "forecast_path": "forecast_data/predictions/ADI_forecast.csv",
+    "next_day_prediction": 224.4440496891657
+  },
+  "PLD": {
+    "last_updated": "2025-08-07T18:37:15.093501",
+    "forecast_path": "forecast_data/predictions/PLD_forecast.csv",
+    "next_day_prediction": 107.80022166806249
+  },
+  "AMGN": {
+    "last_updated": "2025-08-07T18:37:32.175964",
+    "forecast_path": "forecast_data/predictions/AMGN_forecast.csv",
+    "next_day_prediction": 282.9638803469761
+  },
+  "SYK": {
+    "last_updated": "2025-08-07T18:37:48.928789",
+    "forecast_path": "forecast_data/predictions/SYK_forecast.csv",
+    "next_day_prediction": 375.0997239205499
+  },
+  "MDLZ": {
+    "last_updated": "2025-08-07T18:38:05.694629",
+    "forecast_path": "forecast_data/predictions/MDLZ_forecast.csv",
+    "next_day_prediction": 62.36972085120022
+  },
+  "TMUS": {
+    "last_updated": "2025-08-07T18:38:21.152603",
+    "forecast_path": "forecast_data/predictions/TMUS_forecast.csv",
+    "next_day_prediction": 246.89768387273398
+  },
+  "ADP": {
+    "last_updated": "2025-08-07T18:38:35.970317",
+    "forecast_path": "forecast_data/predictions/ADP_forecast.csv",
+    "next_day_prediction": 312.7987233443637
+  },
+  "ZTS": {
+    "last_updated": "2025-08-07T18:38:50.945626",
+    "forecast_path": "forecast_data/predictions/ZTS_forecast.csv",
+    "next_day_prediction": 149.87637823667595
+  },
+  "KLAC": {
+    "last_updated": "2025-08-07T18:39:06.340163",
+    "forecast_path": "forecast_data/predictions/KLAC_forecast.csv",
+    "next_day_prediction": 860.641445291366
+  },
+  "BDX": {
+    "last_updated": "2025-08-07T18:39:22.015680",
+    "forecast_path": "forecast_data/predictions/BDX_forecast.csv",
+    "next_day_prediction": 184.6707059840778
+  },
+  "MU": {
+    "last_updated": "2025-08-07T18:39:37.964145",
+    "forecast_path": "forecast_data/predictions/MU_forecast.csv",
+    "next_day_prediction": 108.80983817160997
+  },
+  "SO": {
+    "last_updated": "2025-08-07T18:39:55.640937",
+    "forecast_path": "forecast_data/predictions/SO_forecast.csv",
+    "next_day_prediction": 94.36791010164416
+  },
+  "DUK": {
+    "last_updated": "2025-08-07T18:40:14.312077",
+    "forecast_path": "forecast_data/predictions/DUK_forecast.csv",
+    "next_day_prediction": 127.9497421539927
+  },
+  "NSC": {
+    "last_updated": "2025-08-07T18:40:31.612251",
+    "forecast_path": "forecast_data/predictions/NSC_forecast.csv",
+    "next_day_prediction": 282.16403129072205
+  },
+  "CME": {
+    "last_updated": "2025-08-07T18:40:48.337524",
+    "forecast_path": "forecast_data/predictions/CME_forecast.csv",
+    "next_day_prediction": 268.2438834003733
+  },
+  "ITW": {
+    "last_updated": "2025-08-07T18:41:04.397065",
+    "forecast_path": "forecast_data/predictions/ITW_forecast.csv",
+    "next_day_prediction": 257.79958267562324
+  },
+  "TJX": {
+    "last_updated": "2025-08-07T18:41:19.605348",
+    "forecast_path": "forecast_data/predictions/TJX_forecast.csv",
+    "next_day_prediction": 132.78976642000657
+  },
+  "USB": {
+    "last_updated": "2025-08-07T18:41:34.432765",
+    "forecast_path": "forecast_data/predictions/USB_forecast.csv",
+    "next_day_prediction": 44.013468889210344
+  },
+  "SHW": {
+    "last_updated": "2025-08-07T18:41:50.079093",
+    "forecast_path": "forecast_data/predictions/SHW_forecast.csv",
+    "next_day_prediction": 351.917870623487
+  },
+  "ICE": {
+    "last_updated": "2025-08-07T18:42:06.439247",
+    "forecast_path": "forecast_data/predictions/ICE_forecast.csv",
+    "next_day_prediction": 189.9003947648944
+  },
+  "MMC": {
+    "last_updated": "2025-08-07T18:42:22.725152",
+    "forecast_path": "forecast_data/predictions/MMC_forecast.csv",
+    "next_day_prediction": 205.1818029815649
+  },
+  "AXP": {
+    "last_updated": "2025-08-07T18:42:38.611935",
+    "forecast_path": "forecast_data/predictions/AXP_forecast.csv",
+    "next_day_prediction": 300.19666048107683
+  },
+  "MO": {
+    "last_updated": "2025-08-07T18:42:54.919626",
+    "forecast_path": "forecast_data/predictions/MO_forecast.csv",
+    "next_day_prediction": 63.08956661851334
+  },
+  "CCI": {
+    "last_updated": "2025-08-07T18:43:11.003773",
+    "forecast_path": "forecast_data/predictions/CCI_forecast.csv",
+    "next_day_prediction": 104.835390826707
+  },
+  "TGT": {
+    "last_updated": "2025-08-07T18:43:27.277471",
+    "forecast_path": "forecast_data/predictions/TGT_forecast.csv",
+    "next_day_prediction": 106.20589879070417
+  },
+  "EOG": {
+    "last_updated": "2025-08-07T18:43:45.788527",
+    "forecast_path": "forecast_data/predictions/EOG_forecast.csv",
+    "next_day_prediction": 115.43333634308601
+  },
+  "AON": {
+    "last_updated": "2025-08-07T18:44:03.633415",
+    "forecast_path": "forecast_data/predictions/AON_forecast.csv",
+    "next_day_prediction": 361.3660952366044
+  },
+  "SLB": {
+    "last_updated": "2025-08-07T18:44:21.226780",
+    "forecast_path": "forecast_data/predictions/SLB_forecast.csv",
+    "next_day_prediction": 34.46286917294867
+  },
+  "PGR": {
+    "last_updated": "2025-08-07T18:44:36.689822",
+    "forecast_path": "forecast_data/predictions/PGR_forecast.csv",
+    "next_day_prediction": 248.6295479758446
+  },
+  "NOC": {
+    "last_updated": "2025-08-07T18:44:51.664301",
+    "forecast_path": "forecast_data/predictions/NOC_forecast.csv",
+    "next_day_prediction": 577.0115421636001
+  },
+  "ETN": {
+    "last_updated": "2025-08-07T18:45:06.675653",
+    "forecast_path": "forecast_data/predictions/ETN_forecast.csv",
+    "next_day_prediction": 358.52706052270605
+  },
+  "ORCL": {
+    "last_updated": "2025-08-07T18:45:22.760910",
+    "forecast_path": "forecast_data/predictions/ORCL_forecast.csv",
+    "next_day_prediction": 265.1153145287317
+  },
+  "COP": {
+    "last_updated": "2025-08-07T18:45:39.514991",
+    "forecast_path": "forecast_data/predictions/COP_forecast.csv",
+    "next_day_prediction": 93.82439127982525
+  },
+  "PSA": {
+    "last_updated": "2025-08-07T18:45:55.779422",
+    "forecast_path": "forecast_data/predictions/PSA_forecast.csv",
+    "next_day_prediction": 281.8474963813278
+  },
+  "APD": {
+    "last_updated": "2025-08-07T18:46:15.277054",
+    "forecast_path": "forecast_data/predictions/APD_forecast.csv",
+    "next_day_prediction": 291.05019319177063
+  },
+  "SRE": {
+    "last_updated": "2025-08-07T18:46:31.133918",
+    "forecast_path": "forecast_data/predictions/SRE_forecast.csv",
+    "next_day_prediction": 82.53493462079769
+  },
+  "VLO": {
+    "last_updated": "2025-08-07T18:46:46.162416",
+    "forecast_path": "forecast_data/predictions/VLO_forecast.csv",
+    "next_day_prediction": 135.0400398353613
+  },
+  "CSCO": {
+    "last_updated": "2025-08-07T18:47:02.021004",
+    "forecast_path": "forecast_data/predictions/CSCO_forecast.csv",
+    "next_day_prediction": 68.83768580083644
+  },
+  "GE": {
+    "last_updated": "2025-08-07T18:47:18.680737",
+    "forecast_path": "forecast_data/predictions/GE_forecast.csv",
+    "next_day_prediction": 274.24443943092774
+  },
+  "AIG": {
+    "last_updated": "2025-08-07T18:47:34.840850",
+    "forecast_path": "forecast_data/predictions/AIG_forecast.csv",
+    "next_day_prediction": 78.60512374308837
+  }
+}

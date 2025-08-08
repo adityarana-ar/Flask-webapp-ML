@@ -1,5 +1,6 @@
 Flask
 flask-cachecontrol
+Flask-Caching
 pandas
 yfinance
 numpy

@@ -1,0 +1,15 @@
+[Unit]
+Description=S&P 500 Stock Forecaster
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ml-summer-project
+Environment=PATH=/home/ubuntu/ml-summer-project/.venv/bin
+ExecStart=/home/ubuntu/ml-summer-project/.venv/bin/python /home/ubuntu/ml-summer-project/main.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

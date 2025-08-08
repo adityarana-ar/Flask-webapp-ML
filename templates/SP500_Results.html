@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&P 500 Stock Forecasts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h2 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .header a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .header a:hover {
+            color: #2980b9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #2980b9;
+        }
+
+        .forecasts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .forecast-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .forecast-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .ticker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .ticker-symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .prediction-change {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .prediction-up {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .prediction-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .prediction-neutral {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .forecast-details {
+            margin-top: 1rem;
+        }
+
+        .forecast-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .forecast-row:last-child {
+            border-bottom: none;
+        }
+
+        .forecast-label {
+            color: #7f8c8d;
+        }
+
+        .forecast-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .forecasts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Aditya Rana's S&P 500 Stock Forecasts</h2>
+        <a href="/">Home</a>
+        <a href="/LSTM">LSTM Stock Prediction</a>
+        <a href="/Diabetes">Diabetes Classification</a>
+        <a href="https://www.linkedin.com/in/adityarana-043625241/" target="_blank">LinkedIn Profile</a>
+        <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
+    </div>
+
+    <div class="container">
+        {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_forecasts }}</div>
+                <div class="stat-label">Total Forecasts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ last_updated_count }}</div>
+                <div class="stat-label">Updated Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ avg_prediction_change|round(2) }}%</div>
+                <div class="stat-label">Avg Prediction Change</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <h3>Search S&P 500 Stocks</h3>
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Enter ticker symbol (e.g., AAPL, MSFT, GOOGL)">
+                <button onclick="searchStocks()" class="search-btn">Search</button>
+            </div>
+            <p>Enter a ticker symbol to filter the forecasts below. Leave empty to show all forecasts.</p>
+        </div>
+
+        {% if forecasts %}
+        <div class="forecasts-grid" id="forecastsGrid">
+            {% for ticker, forecast in forecasts.items() %}
+            <div class="forecast-card" data-ticker="{{ ticker }}">
+                <div class="ticker-header">
+                    <div class="ticker-symbol">{{ ticker }}</div>
+                    {% if forecast.next_day_prediction and forecast.current_price %}
+                        {% set change = ((forecast.next_day_prediction - forecast.current_price) / forecast.current_price * 100) %}
+                        <div class="prediction-change {% if change > 0 %}prediction-up{% elif change < 0 %}prediction-down{% else %}prediction-neutral{% endif %}">
+                            {{ "%.2f"|format(change) }}%
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="forecast-details">
+                    {% if forecast.next_day_prediction %}
+                    <div class="forecast-row">
+                        <span class="forecast-label">Next Day Prediction:</span>
+                        <span class="forecast-value">${{ "%.2f"|format(forecast.next_day_prediction) }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if forecast.current_price %}
+                    <div class="forecast-row">
+                        <span class="forecast-label">Current Price:</span>
+                        <span class="forecast-value">${{ "%.2f"|format(forecast.current_price) }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if forecast.last_updated %}
+                    <div class="forecast-row">
+                        <span class="forecast-label">Last Updated:</span>
+                        <span class="forecast-value">{{ forecast.last_updated }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="loading">
+            <h3>Loading forecasts...</h3>
+            <p>This may take a few moments as we prepare the latest S&P 500 forecasts.</p>
+        </div>
+        {% endif %}
+
+        {% if last_update %}
+        <div class="last-updated">
+            Last system update: {{ last_update }}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function searchStocks() {
+            const searchTerm = document.getElementById('searchInput').value.toUpperCase();
+            const forecastCards = document.querySelectorAll('.forecast-card');
+            
+            forecastCards.forEach(card => {
+                const ticker = card.getAttribute('data-ticker');
+                if (ticker.includes(searchTerm) || searchTerm === '') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Allow search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStocks();
+            }
+        });
+
+        // Auto-refresh every 5 minutes
+        setInterval(function() {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
