@@ -410,15 +410,8 @@ class SP500Forecaster:
         return {t: prices.get(t) for t in tickers}
 
     def update_all_forecasts(self):
-        """Update forecasts for all S&P 500 stocks (guarded to prevent concurrent runs)."""
-        if not self._update_lock.acquire(blocking=False):
-            print("Another update is already in progress. Skipping.")
-            return {}
-        try:
-            if self._update_in_progress:
-                print("Update flag indicates running. Skipping.")
-                return {}
-            self._update_in_progress = True
+        """Update forecasts for all S&P 500 stocks (thread-safe, lock guarded)."""
+        with self._update_lock:  # thread-safe context manager
             print(f"Starting forecast update for {len(self.SP500_TICKERS)} stocks...")
 
             successful_forecasts = {}
