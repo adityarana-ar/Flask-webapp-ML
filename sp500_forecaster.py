@@ -470,9 +470,6 @@ class SP500Forecaster:
                 f"Forecast update completed. {len(successful_forecasts)} successful forecasts."
             )
             return successful_forecasts
-        finally:
-            self._update_in_progress = False
-            self._update_lock.release()
 
     def should_update(self):
         """Check if forecasts should be updated (daily after market close)"""
