@@ -10,3 +10,4 @@ keras
 matplotlib
 seaborn
 pillow
+Flask-Caching>=2.1.0

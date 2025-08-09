@@ -524,10 +524,9 @@ def background_update_forecasts():
             print(f"Error in background forecast update: {e}")
             time.sleep(3600)
 
+def start_background_updates():
+    """Start background update thread (explicitly called by the web app)."""
+    t = threading.Thread(target=background_update_forecasts, daemon=True)
+    t.start()
+    return t
 
-# Start background thread (guarded by environment variable)
-if os.environ.get("ENABLE_BACKGROUND_UPDATES", "1") == "1":
-    update_thread = threading.Thread(target=background_update_forecasts, daemon=True)
-    update_thread.start()
-else:
-    print("Background updates disabled via ENABLE_BACKGROUND_UPDATES env var.")
