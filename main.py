@@ -3,11 +3,22 @@ from flask import Flask, render_template, request, url_for, flash, redirect, jso
 
 # Import the S&P 500 forecaster
 from sp500_forecaster import forecaster
+from flask_caching import Cache
+from flask_cachecontrol import dont_cache
 
 app = Flask(__name__)
 img = os.path.join("static", "Image")
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.config["SECRET_KEY"] = os.urandom(24).hex()
+
+cache = Cache(
+    app,
+    config={
+        "CACHE-TYPE": "RedisCache",
+        "CACHE_REDIS_URL": "redis://127.0.0.1:6379/0",
+        "CACHE_DEFAULT_TIMEOUT": 600,
+    },
+)
 
 
 @app.route("/")
@@ -198,14 +209,24 @@ def diabetes():
 
 from flask_caching import Cache
 
-cache = Cache(app, config={"Cache-TYPE": "SimpleCache", "Cache_DEFAULT_TIMEOUT": 300})
+cache = Cache(
+    app,
+    config={
+        "CACHE-TYPE": "RedisCache",
+        "CACHE_REDIS_URL": "redis://127.0.0.1:6379/0",
+        "CACHE_DEFAULT_TIMEOUT": 600,
+    },
+)
 
 
+@cache.cached(timeout=600)  # cache the rendered page for 10 minutes
 @app.route("/SP500", methods=("GET", "POST"))
 def sp500_forecasts():
-    """Display S&P 500 stock forecasts (read-only: no heavy generation here)"""
+    """Display S&P 500 stock forecasts quickly (no heavy work in request)."""
+    from datetime import datetime  # local import to avoid global clutter
+
     try:
-        # Strictly load cached forecasts only (get_all_forecasts already just reads files)
+        # 1) Load precomputed forecasts from disk
         all_forecasts = forecaster.get_all_forecasts()
         if not all_forecasts:
             return render_template(
@@ -222,20 +243,14 @@ def sp500_forecasts():
                 error="No cached forecasts found. They may still be generating in the background.",
             )
 
-        import yfinance as yf
-        from datetime import datetime
+        # 2) Get current prices via your TTL cache (single shot for all tickers)
+        tickers = list(all_forecasts.keys())
+        prices = forecaster.get_intraday_prices(tickers) or {}
 
         forecasts_with_prices = {}
         total_forecasts = len(all_forecasts)
         last_updated_count = 0
         prediction_changes = []
-
-        tickers = list(all_forecasts.keys())
-        try:
-            current_price = yf.download(tickers=tickers, period="1d", group_by="ticker")
-        except Exception as e:
-            print("yfinance download error:", e)
-            current_price = None
 
         for ticker, forecast_df in all_forecasts.items():
             try:
@@ -244,22 +259,16 @@ def sp500_forecasts():
                     if not forecast_df.empty
                     else None
                 )
+
+                # Price from cached dict (may be None if unavailable)
+                price = prices.get(ticker)
+
                 change_percentage = None
-                price = None
-                if current_price is not None:
-                    if ticker in current_price:  # multi-ticker style
-                        price_df = current_price[ticker]
-                        if not price_df.empty and "Close" in price_df.columns:
-                            price = price_df["Close"].iloc[0]
-                    elif (
-                        hasattr(current_price, "columns")
-                        and "Close" in current_price.columns
-                    ):  # single ticker fallback
-                        price = current_price["Close"].iloc[0]
                 if price is not None and next_day_prediction is not None and price != 0:
                     change_percentage = ((next_day_prediction - price) / price) * 100.0
                     prediction_changes.append(change_percentage)
 
+                # File mtime → last updated stamp, and count today's updates
                 last_updated = None
                 forecast_path = os.path.join(
                     forecaster.predictions_dir, f"{ticker}_forecast.csv"
@@ -290,6 +299,7 @@ def sp500_forecasts():
             if forecaster.last_update
             else None
         )
+
         return render_template(
             "SP500_Results.html",
             forecasts=forecasts_with_prices,
@@ -298,6 +308,7 @@ def sp500_forecasts():
             avg_prediction_change=avg_prediction_change,
             last_update=last_update,
         )
+
     except Exception as e:
         print(f"Error in SP500 route: {e}")
         return render_template(
