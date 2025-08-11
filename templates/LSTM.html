@@ -20,10 +20,20 @@
     </div>
   </div>
 
+  <!-- Disclaimer Section -->
+  <div class="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm dark:border-amber-800 dark:bg-amber-900/20">
+    <h2 class="text-xl font-semibold mb-4 text-amber-800 dark:text-amber-200">⚠️ Important Disclaimer</h2>
+    <div class="space-y-3 text-sm text-amber-700 dark:text-amber-300">
+      <p><strong>Experimental Predictions:</strong> These LSTM predictions are experimental and still under development. While the overall trends (increasing or decreasing price directions) may be reasonably accurate, the exact price predictions should not be considered precise.</p>
+      <p><strong>Not Financial Advice:</strong> This tool is for educational and research purposes only. The predictions generated are NOT financial advice and should not be used as the sole basis for any investment decisions. Always consult with qualified financial professionals before making investment decisions.</p>
+      <p><strong>No Liability:</strong> By using this tool, you acknowledge that the predictions are experimental and agree that no liability is assumed for any financial losses or decisions made based on these predictions.</p>
+    </div>
+  </div>
+
   <!-- Form Section -->
   <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
     <h2 class="text-xl font-semibold mb-4">Get Stock Prediction</h2>
-    <form method="post" class="space-y-4">
+    <form method="post" class="space-y-4" id="lstmForm">
       <div>
         <label for="ticker" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Enter the stock ticker for prediction:
@@ -41,6 +51,7 @@
       
       <button 
         type="submit" 
+        id="submitBtn"
         class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
       >
         Get Prediction
@@ -66,9 +77,20 @@
     <h2 class="text-xl font-semibold mb-4">Important Notes</h2>
     <div class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
       <p>• The caching of the images works best in Chrome from my experience. If old plots are shown, kindly try clearing cache.</p>
-      <p>• Note that it could take a minute to load the next page.</p>
+      <p>• <strong>Processing time:</strong> LSTM model training can take 2-5 minutes. Please be patient and don't close the browser.</p>
       <p>• This is a legacy feature. For comprehensive S&P 500 forecasts, visit the <a href="{{ url_for('sp500_forecasts') }}" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline">S&P 500 Forecasts</a> page.</p>
     </div>
   </div>
+
+  
 </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Form submission is now handled by redirecting to the progress page
+// The progress page will handle the actual processing with real-time updates
+</script>
 {% endblock %}

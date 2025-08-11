@@ -1,8 +1,23 @@
 import os
-from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
+from flask import (
+    Flask,
+    render_template,
+    request,
+    url_for,
+    flash,
+    redirect,
+    jsonify,
+    Response,
+    stream_template,
+)
 
 # Import the S&P 500 forecaster
 from sp500_forecaster import forecaster
+
+# Global variable to track active LSTM sessions
+active_lstm_sessions = {}
+import threading
+import time
 from flask_caching import Cache
 from flask_cachecontrol import dont_cache
 
@@ -340,6 +355,340 @@ def LSTM():
         if not ticker:
             flash(message="Please enter a valid Stock ticker")
             return render_template("LSTM.html")
+
+        # Redirect to streaming progress page
+        return redirect(url_for("lstm_progress", ticker=ticker))
+
+    return render_template("LSTM.html")
+
+
+@app.route("/LSTM/progress/<ticker>")
+@dont_cache()
+def lstm_progress(ticker):
+    """Progress page for LSTM processing"""
+    return render_template("LSTM_Progress.html", ticker=ticker)
+
+
+# Global storage for LSTM results and status
+lstm_results_cache = {}
+lstm_status = {}
+
+
+@app.route("/LSTM/stream/<ticker>")
+@dont_cache()
+def lstm_stream(ticker):
+    """Streaming endpoint for LSTM processing"""
+
+    # Check if this ticker is already being processed
+    if ticker in active_lstm_sessions:
+
+        def already_processing():
+            yield 'data: {"step": "error", "message": "LSTM processing for this ticker is already in progress. Please wait for it to complete."}\n\n'
+
+        return Response(already_processing(), mimetype="text/plain")
+
+    # Mark this ticker as being processed
+    active_lstm_sessions[ticker] = True
+    lstm_status[ticker] = {"step": 0, "message": "Starting...", "progress": 0}
+
+    def generate():
+        try:
+            import time as time_module
+
+            # Step 1: Download data
+            lstm_status[ticker] = {
+                "step": 1,
+                "message": "Downloading stock data...",
+                "progress": 10,
+            }
+            yield 'data: {"step": 1, "message": "Downloading stock data...", "progress": 10}\n\n'
+
+            import pandas as pd
+            import yfinance as yf
+            import numpy as np
+            from sklearn.preprocessing import MinMaxScaler
+            import tensorflow as tf
+            from keras import optimizers
+            from keras.callbacks import History
+            from keras.models import Model
+            from keras.models import Sequential
+            from keras.layers import (
+                LSTM,
+                Dense,
+                Dropout,
+                TimeDistributed,
+                Input,
+                Activation,
+                Concatenate,
+            )
+            import matplotlib
+
+            matplotlib.use("agg")
+            from matplotlib import pyplot as plt
+            import seaborn as sns
+
+            lstm_status[ticker] = {
+                "step": 2,
+                "message": "Downloading stock data...",
+                "progress": 20,
+            }
+            yield 'data: {"step": 2, "message": "Downloading stock data...", "progress": 20}\n\n'
+
+            df = yf.download(tickers=ticker, period="3y")
+            if df is None or df.empty:
+                lstm_status[ticker] = {
+                    "step": "error",
+                    "message": "No data returned for ticker. Please check the symbol or try later.",
+                }
+                yield 'data: {"step": "error", "message": "No data returned for ticker. Please check the symbol or try later."}\n\n'
+                return
+
+            lstm_status[ticker] = {
+                "step": 3,
+                "message": "Preprocessing data...",
+                "progress": 30,
+            }
+            yield 'data: {"step": 3, "message": "Preprocessing data...", "progress": 30}\n\n'
+
+            og_dates = df.index
+            df["EMAF"] = df["Close"].ewm(span=20, adjust=False).mean()
+            df["EMAM"] = df["Close"].ewm(span=60, adjust=False).mean()
+            df["EMAS"] = df["Close"].ewm(span=100, adjust=False).mean()
+
+            def compute_rsi(series, period=15):
+                delta = series.diff()
+                gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+                loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+                rs = gain / loss
+                return 100 - (100 / (1 + rs))
+
+            df["RSI"] = compute_rsi(df["Close"], period=15)
+            df["Target"] = df["Close"].shift(-1)
+            df = df.dropna()
+            if df.empty or len(df) < 60:
+                lstm_status[ticker] = {
+                    "step": "error",
+                    "message": "Insufficient historical data after preprocessing.",
+                }
+                yield 'data: {"step": "error", "message": "Insufficient historical data after preprocessing."}\n\n'
+                return
+
+            lstm_status[ticker] = {
+                "step": 4,
+                "message": "Preparing model data...",
+                "progress": 40,
+            }
+            yield 'data: {"step": 4, "message": "Preparing model data...", "progress": 40}\n\n'
+
+            dates = df.index
+            df.index = range(len(dates))
+            df["Date"] = dates
+            og_df = df
+            cols = list(df)
+            cols.pop(3)
+            cols.pop(4)
+            cols.pop(-1)
+            df = df[cols].astype(float)
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            df_scaled = scaler.fit_transform(df)
+            X_train = []
+            pastcandles = 30
+            num_features = df.shape[1]
+            for i in range(num_features):
+                X_train.append([])
+                for j in range(pastcandles, df_scaled.shape[0]):
+                    X_train[i].append(df_scaled[j - pastcandles : j, i])
+            X_train = np.moveaxis(X_train, [0], [2])
+            X_train = np.array(X_train)
+            Y = np.array(df_scaled[pastcandles:, -1])
+            Y = np.reshape(Y, (len(Y), 1))
+            ratio = int(len(X_train) * 0.8)
+            if ratio == 0 or len(X_train) - ratio == 0:
+                lstm_status[ticker] = {
+                    "step": "error",
+                    "message": "Not enough data to split into train/test sets.",
+                }
+                yield 'data: {"step": "error", "message": "Not enough data to split into train/test sets."}\n\n'
+                return
+            X_train, X_test = X_train[:ratio], X_train[ratio:]
+            Y_train, Y_test = Y[:ratio], Y[ratio:]
+
+            lstm_status[ticker] = {
+                "step": 5,
+                "message": "Building LSTM model...",
+                "progress": 50,
+            }
+            yield 'data: {"step": 5, "message": "Building LSTM model...", "progress": 50}\n\n'
+
+            lstm = Input(shape=(pastcandles, num_features), name="LSTM_input")
+            lstm_input = LSTM(150, name="First_layer")(lstm)
+            lstm_input = Dense(1, name="Dense_layer")(lstm_input)
+            result = Activation("linear", name="Result")(lstm_input)
+            model = Model(inputs=lstm, outputs=result)
+            adam = optimizers.Adam()
+            model.compile(optimizer=adam, loss="mse")
+
+            lstm_status[ticker] = {
+                "step": 6,
+                "message": "Training LSTM model (this may take 2-3 minutes)...",
+                "progress": 60,
+            }
+            yield 'data: {"step": 6, "message": "Training LSTM model (this may take 2-3 minutes)...", "progress": 60}\n\n'
+
+            model.fit(
+                x=X_train,
+                y=Y_train,
+                batch_size=15,
+                epochs=30,
+                shuffle=True,
+                validation_split=0.1,
+            )
+
+            lstm_status[ticker] = {
+                "step": 7,
+                "message": "Generating predictions...",
+                "progress": 70,
+            }
+            yield 'data: {"step": 7, "message": "Generating predictions...", "progress": 70}\n\n'
+
+            Prediction = model.predict(X_test)
+            Y_pred = scaler.inverse_transform(
+                np.repeat(Prediction, df_scaled.shape[1], axis=-1)
+            )[:, 0]
+            from pandas.tseries.holiday import USFederalHolidayCalendar
+            from pandas.tseries.offsets import CustomBusinessDay
+
+            us_bd = CustomBusinessDay(calendar=USFederalHolidayCalendar())
+            forecast_dates = pd.date_range(
+                list(dates)[-len(X_test)], periods=len(Y_pred), freq=us_bd
+            ).tolist()
+            prediction_dates = [date.date() for date in forecast_dates]
+            forecast = pd.DataFrame(
+                {"Date": np.array(prediction_dates), "Target": Y_pred}
+            )
+            forecast["Date"] = pd.to_datetime(forecast["Date"])
+            lst_cols = ["Target", "Date"]
+            original_df = og_df[lst_cols]
+            original_df["Date"] = pd.to_datetime(original_df["Date"])
+            original_df = original_df.loc[original_df["Date"] >= "2022-01-01"]
+
+            lstm_status[ticker] = {
+                "step": 8,
+                "message": "Creating visualizations...",
+                "progress": 80,
+            }
+            yield 'data: {"step": 8, "message": "Creating visualizations...", "progress": 80}\n\n'
+
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+
+            figure = plt.figure(figsize=(10, 5))
+            sns.lineplot(
+                x=original_df["Date"],
+                y=original_df["Target"],
+                label="Original closing prices",
+            )
+            sns.lineplot(
+                x=forecast["Date"],
+                y=forecast["Target"],
+                label="Forecasted closing prices",
+            )
+            plt.legend()
+            os.makedirs("static/Image", exist_ok=True)
+            verification_path = os.path.join("static/Image", "verification.png")
+            figure.savefig(verification_path)
+            futurecandles = 10
+            futuredates = pd.date_range(
+                list(og_dates)[-1], periods=futurecandles, freq=us_bd
+            ).tolist()
+            futuredates = pd.to_datetime(futuredates)
+            future_prediction = model.predict(X_test[-futurecandles:])
+            future_prediction = scaler.inverse_transform(
+                np.repeat(future_prediction, df_scaled.shape[1], axis=-1)
+            )[:, 0]
+            figure1 = plt.figure(figsize=(10, 5))
+            sns.lineplot(
+                x=futuredates,
+                y=future_prediction,
+                label="Future closing prices prediction",
+            )
+            plt.legend()
+            prediction_path = os.path.join("static/Image", "prediction.png")
+            figure1.savefig(prediction_path)
+
+            lstm_status[ticker] = {
+                "step": 9,
+                "message": "Finalizing results...",
+                "progress": 90,
+            }
+            yield 'data: {"step": 9, "message": "Finalizing results...", "progress": 90}\n\n'
+
+            # Store results for later access
+            lstm_results_cache[ticker] = {
+                "status": "completed",
+                "timestamp": time_module.time(),
+            }
+
+            # Send completion message
+            lstm_status[ticker] = {
+                "step": "complete",
+                "message": "Processing complete! Redirecting to results...",
+                "progress": 100,
+                "redirect": f"/LSTM/results/{ticker}",
+            }
+            yield f'data: {{"step": "complete", "message": "Processing complete! Redirecting to results...", "progress": 100, "redirect": "/LSTM/results/{ticker}"}}\n\n'
+
+        except Exception as e:
+            import traceback
+
+            print("Exception in LSTM progress:", e)
+            traceback.print_exc()
+            lstm_status[ticker] = {"step": "error", "message": f"Error: {str(e)}"}
+            yield f'data: {{"step": "error", "message": "Error: {str(e)}"}}\n\n'
+        finally:
+            # Always clean up the session when done
+            if ticker in active_lstm_sessions:
+                del active_lstm_sessions[ticker]
+
+    return Response(generate(), mimetype="text/plain")
+
+
+@app.route("/LSTM/results/<ticker>")
+@dont_cache()
+def lstm_results(ticker):
+    """Display LSTM results"""
+    try:
+        # Check if the image files exist
+        verification_path = os.path.join("static/Image", "verification.png")
+        prediction_path = os.path.join("static/Image", "prediction.png")
+
+        if not os.path.exists(verification_path) or not os.path.exists(prediction_path):
+            flash("Results not found. Please try running the prediction again.")
+            return redirect(url_for("LSTM"))
+
+        return render_template(
+            "LSTM_Results.html",
+            img1="/static/Image/verification.png",
+            img2="/static/Image/prediction.png",
+            ticker=ticker,
+        )
+    except Exception as e:
+        flash(f"Error displaying results: {str(e)}")
+        return redirect(url_for("LSTM"))
+
+
+# Legacy LSTM route (kept for backward compatibility)
+@app.route("/LSTM/legacy", methods=("GET", "POST"))
+@dont_cache()
+def LSTM_legacy():
+    """Legacy LSTM route for individual stock prediction"""
+    if request.method == "POST":
+        raw_ticker = request.form["ticker"].strip().upper()
+        # Sanitize (map '.' to '-' for tickers like BRK.B)
+        ticker = raw_ticker.replace(".", "-")
+        if not ticker:
+            flash(message="Please enter a valid Stock ticker")
+            return render_template("LSTM.html")
         try:
             import pandas as pd
             import yfinance as yf
@@ -444,7 +793,7 @@ def LSTM():
             forecast_dates = pd.date_range(
                 list(dates)[-len(X_test)], periods=len(Y_pred), freq=us_bd
             ).tolist()
-            prediction_dates = [time.date() for time in forecast_dates]
+            prediction_dates = [date.date() for date in forecast_dates]
             forecast = pd.DataFrame(
                 {"Date": np.array(prediction_dates), "Target": Y_pred}
             )
@@ -518,4 +867,4 @@ except Exception as e:
         print(f"Failed to start background updates: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
