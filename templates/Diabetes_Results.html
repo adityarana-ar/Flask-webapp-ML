@@ -1,80 +1,103 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Aditya Rana's Website!</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            }
-            .header {
-                padding: 5px 16px;
-                background: #3a3b3c;
-                color: #f1f1f1;
-                overflow: hidden;
-            }
-            .header a {
-                float:left;
-                color: #f2f2f2;
-                text-align: center;
-                padding: 14 px 16 px;
-                text-decoration: none;
-                font-size: 17px;
-                margin: 10px;
-            }
-            .header a:hover {
-                background-color: cadetblue;
-            }
-            .content {
-                padding: 16px;
-            }
-            .sticky {
-                position: fixed;
-                top: 0;
-                width: 100%;
-            }
+{% extends "base.html" %}
 
-            .sticky + .content {
-                padding-top: 132px;
-            }
-        </style>
-    </head>
-    <body style="padding: 0%;">
-        <div class="header" id="myHeader">
-            <h2>Aditya Rana's Website</h2>
-            <a href="/">Home</a>
-            <a href="LSTM">LSTM Stock Prediction</a>
-            <a href="Diabetes">Diabetes Classification</a>
-            <a href="https://www.linkedin.com/in/aditya-rana-043625241/" target="_blank">LinkedIn Profile</a>
-            <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
-        </div>
-        <div class="content" style="margin: 10%;"><h3>Classification results:</h3>
-            <!-- <p>Here are the inputs:</p>
-            <p>Pregnancies: {{pregnancies}}</p>  
-            <p>Glucose level: {{glucose}}</p>
-            <p>Blood Pressure: {{bp}}</p>
-            <p>Skin Thickness: {{skin_thickness}}</p>
-            <p>Insulin: {{insulin}}</p>
-            <p>BMI: {{bmi}}</p>
-            <p>Diabetes Pedigree Function: {{dpf}}</p>
-            <p>Age: {{age}}</p> -->
-            <p>Based on the input, you could potentially be {{prediction}}</p>
-        </div>
+{% block title %}Diabetes Prediction Results · Aditya Rana{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div class="text-center space-y-4">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Diabetes Prediction Results</h1>
+    <p class="text-lg text-gray-600 dark:text-gray-300">SVM-based diabetes risk assessment</p>
+  </div>
+
+  <!-- Results Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">Prediction Results</h2>
     
-            <script>
-                window.onscroll = function() {myFunction()};
-                var header = document.getElementById("myHeader");
-                var sticky = header.offsetTop;
+    <div class="text-center space-y-4">
+      <div class="inline-flex items-center gap-3 rounded-full px-6 py-3 text-lg font-semibold
+        {% if prediction == 'diabetic' %}
+          bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300
+        {% else %}
+          bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300
+        {% endif %}">
+        {% if prediction == 'diabetic' %}
+          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+        {% else %}
+          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+        {% endif %}
+        Based on the input, you could potentially be <span class="font-bold">{{ prediction }}</span>
+      </div>
+      
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        {% if prediction == 'diabetic' %}
+          This prediction indicates a higher risk of diabetes. Please consult with a healthcare professional for proper evaluation and guidance.
+        {% else %}
+          This prediction indicates a lower risk of diabetes. However, regular check-ups and maintaining a healthy lifestyle are always recommended.
+        {% endif %}
+      </p>
+    </div>
+  </div>
 
-                function myFunction() {
-                    if (window.pageYOffset > sticky) {
-                        header.classList.add("sticky");
-                    }
-                    else {
-                        header.classList.remove("sticky");
-                    }
-                }
-            </script>
-        </body>
-</html>
+  <!-- Input Summary Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">Input Summary</h2>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Pregnancies</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ pregnancies }}</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Glucose Level</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ glucose }} mmol/L</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Blood Pressure</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ bp }} mmHg</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Skin Thickness</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ skin_thickness }} mm</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Insulin</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ insulin }} mIU/L</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">BMI</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ bmi }}</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Diabetes Pedigree</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ dpf }}</div>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Age</div>
+        <div class="font-semibold text-gray-900 dark:text-white">{{ age }} years</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">What's Next?</h2>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <a href="{{ url_for('diabetes') }}" 
+         class="group rounded-lg border border-gray-200 p-4 transition-all hover:border-indigo-500 hover:bg-indigo-50 dark:border-gray-700 dark:hover:border-indigo-400 dark:hover:bg-indigo-900/20">
+        <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Try Another Assessment</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Get prediction for different patient data</p>
+      </a>
+      
+      <a href="{{ url_for('home') }}" 
+         class="group rounded-lg border border-gray-200 p-4 transition-all hover:border-indigo-500 hover:bg-indigo-50 dark:border-gray-700 dark:hover:border-indigo-400 dark:hover:bg-indigo-900/20">
+        <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Back to Home</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Explore other projects and features</p>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

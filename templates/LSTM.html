@@ -1,99 +1,74 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Aditya Rana's Website!</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            }
-            .header {
-                padding: 5px 16px;
-                background: #3a3b3c;
-                color: #f1f1f1;
-                overflow: hidden;
-            }
-            .header a {
-                float:left;
-                color: #f2f2f2;
-                text-align: center;
-                padding: 14 px 16 px;
-                text-decoration: none;
-                font-size: 17px;
-                margin: 10px;
-            }
-            .header a:hover {
-                background-color: cadetblue;
-            }
-            .content {
-                padding: 16px;
-            }
-            .sticky {
-                position: fixed;
-                top: 0;
-                width: 100%;
-            }
+{% extends "base.html" %}
 
-            .sticky + .content {
-                padding-top: 132px;
-            }
-        </style>
-    </head>
-    <body style="padding: 0%;">
-        <div class="header" id="myHeader">
-            <h2>Aditya Rana's Website</h2>
-            <a href="/">Home</a>
-            <a href="#LSTM">LSTM Stock Prediction</a>
-            <a href="Diabetes">Diabetes Classification</a>
-            <a href="https://www.linkedin.com/in/aditya-rana-043625241/" target="_blank">LinkedIn Profile</a>
-            <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
-        </div>
-        <div class="content" style="margin: 10%;"><h3>This is the LSTM Stock Prediction page!</h3>
-            <p>This project uses Long Short-Term Memory networks (LSTM) Deep Learning model to predict the closing prices of stock prices
-                 as they are capable of learning long-term dependencies.</p>
-            <p>LSTM models are useful for sequence prediction problems where past information and the latest prior information both 
-                dictate the successive data.
-            </p>
-            <p>The dataframe to train the model is provided by <a href="https://pypi.org/project/yfinance/" target="_blank">yfinance</a>.
-                To train the model, variables such as moving averages of different periods as well as exponential moving averages were used.
-            </p>
-            <form method="post">
-                <label for="ticker">Enter the stock ticker for prediction:</label>
-                <br>
-                <input type="text" name="ticker"
-                placeholder="Without the '$' symbol"
-                value="{{request.form['ticker']}}"></input>
-                <br><br>
+{% block title %}LSTM Stock Prediction · Aditya Rana{% endblock %}
 
-                <button type="submit">Submit</button>
-            </form>
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul>
-                        {% for message in messages %}
-                        <li>{{ message }}</li>
-                        {% endfor %}
-                     </ul>
-                {% endif %}
-            {% endwith %}
-            <p>The caching of the images works best in chrome from my experience. If old plots are shown kindly try clearing cache.</p>
-            <p>Note that it could take a minute to load the next page.</p>
+{% block content %}
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div class="text-center space-y-4">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">LSTM Stock Prediction</h1>
+    <p class="text-lg text-gray-600 dark:text-gray-300">Predict stock prices using Long Short-Term Memory networks</p>
+  </div>
+
+  <!-- Description Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">About This Project</h2>
+    <div class="space-y-3 text-gray-600 dark:text-gray-300">
+      <p>This project uses Long Short-Term Memory networks (LSTM) Deep Learning model to predict the closing prices of stock prices as they are capable of learning long-term dependencies.</p>
+      <p>LSTM models are useful for sequence prediction problems where past information and the latest prior information both dictate the successive data.</p>
+      <p>The dataframe to train the model is provided by <a href="https://pypi.org/project/yfinance/" target="_blank" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline">yfinance</a>. To train the model, variables such as moving averages of different periods as well as exponential moving averages were used.</p>
+    </div>
+  </div>
+
+  <!-- Form Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">Get Stock Prediction</h2>
+    <form method="post" class="space-y-4">
+      <div>
+        <label for="ticker" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Enter the stock ticker for prediction:
+        </label>
+        <input 
+          type="text" 
+          name="ticker" 
+          id="ticker"
+          placeholder="e.g., AAPL, MSFT, GOOGL (without the '$' symbol)"
+          value="{{ request.form['ticker'] if request.form['ticker'] else '' }}"
+          class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          required
+        >
+      </div>
+      
+      <button 
+        type="submit" 
+        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+      >
+        Get Prediction
+      </button>
+    </form>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="mt-4 space-y-2">
+          {% for message in messages %}
+            <div class="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-700 dark:text-red-300">
+              {{ message }}
             </div>
-    
-            <script>
-                window.onscroll = function() {myFunction()};
-                var header = document.getElementById("myHeader");
-                var sticky = header.offsetTop;
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
 
-                function myFunction() {
-                    if (window.pageYOffset > sticky) {
-                        header.classList.add("sticky");
-                    }
-                    else {
-                        header.classList.remove("sticky");
-                    }
-                }
-            </script>
-        </body>
-</html>
+  <!-- Notes Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">Important Notes</h2>
+    <div class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+      <p>• The caching of the images works best in Chrome from my experience. If old plots are shown, kindly try clearing cache.</p>
+      <p>• Note that it could take a minute to load the next page.</p>
+      <p>• This is a legacy feature. For comprehensive S&P 500 forecasts, visit the <a href="{{ url_for('sp500_forecasts') }}" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline">S&P 500 Forecasts</a> page.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

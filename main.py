@@ -9,6 +9,7 @@ img = os.path.join("static", "Image")
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.config["SECRET_KEY"] = os.urandom(24).hex()
 
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -491,9 +492,11 @@ def LSTM():
             flash("Internal error while generating forecast. Please try again later.")
     return render_template("LSTM.html")
 
+
 # --- Optional background updater (explicit; no work at import time) ---
 try:
     from sp500_forecaster import start_background_updates
+
     if os.environ.get("ENABLE_BACKGROUND_UPDATES", "0") == "1":
         start_background_updates()
 except Exception as e:
@@ -505,4 +508,3 @@ except Exception as e:
 
 if __name__ == "__main__":
     app.run(debug=True)
-

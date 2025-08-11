@@ -1,154 +1,173 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Aditya Rana's Website!</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            }
-            .header {
-                padding: 5px 16px;
-                background: #3a3b3c;
-                color: #f1f1f1;
-                overflow: hidden;
-            }
-            .header a {
-                float:left;
-                color: #f2f2f2;
-                text-align: center;
-                padding: 14 px 16 px;
-                text-decoration: none;
-                font-size: 17px;
-                margin: 10px;
-            }
-            .header a:hover {
-                background-color: cadetblue;
-            }
-            .content {
-                padding: 16px;
-            }
-            .sticky {
-                position: fixed;
-                top: 0;
-                width: 100%;
-            }
-            @media only screen and (max-width: 767px){
-            .sticky + .content {
-                padding-top: 172px;
-            }}
-            @media screen and (min-width: 768px){
-                .sticky + .content {
-                padding-top: 132px;
-            }
-            }
-        </style>
-    </head>
-    <body style="padding: 0%;">
-        <div class="header" id="myHeader">
-            <h2>Aditya Rana's Website</h2>
-            <a href="/">Home</a>
-            <a href="LSTM">LSTM Stock Prediction</a>
-            <a href="Diabetes">Diabetes Classification</a>
-            <a href="https://www.linkedin.com/in/aditya-rana-043625241/" target="_blank">LinkedIn Profile</a>
-            <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
+{% extends "base.html" %}
+
+{% block title %}Diabetes Classification · Aditya Rana{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div class="text-center space-y-4">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Diabetes Classification</h1>
+    <p class="text-lg text-gray-600 dark:text-gray-300">Predict diabetes risk using Support Vector Machine (SVM)</p>
+  </div>
+
+  <!-- Description Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">About This Project</h2>
+    <div class="space-y-3 text-gray-600 dark:text-gray-300">
+      <p>This project uses Support Vector Machine (SVM) classifier model to predict whether someone could have diabetes or not.</p>
+      <p>SVM is a Machine Learning (ML) model which uses supervised learning to classify in this case the final outcome of different medical readings (i.e. whether a patient has diabetes or not).</p>
+      <p>The dataset used for this project can be found <a href="https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database" target="_blank" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline">here</a> by University of California, Irvine.</p>
+    </div>
+  </div>
+
+  <!-- Form Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-6">Enter Patient Information</h2>
+    <form method="post" class="space-y-6">
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label for="pregnancies" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Number of Pregnancies
+          </label>
+          <input 
+            type="number" 
+            name="pregnancies" 
+            id="pregnancies"
+            placeholder="e.g., 2"
+            value="{{ request.form['pregnancies'] if request.form['pregnancies'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
         </div>
-        <div class="content"><h3>This is the Diabetes Classification page!</h3>
-            <p>This project uses Support Vector Machine (SVM) classifier model to predict whether someone could have diabetes or not.</p>
-            <p>SVM is a Machine Learning (ML) model which uses supervised learning to classify in this case the final outcome of different
-                medical readings (i.e. whether a patient has diabetes or not)
-            </p>
-            <p>The dataset used for this project can be found <a href="https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database">here</a>
-            by University of California, Irvine.
-            </p>
-            <form method="post">
-                <label for="pregnancies">Enter the number of pregnancies:</label>
-                <br>
-                <input type="number" name="pregnancies"
-                placeholder="Pregnancies"
-                value="{{ request.form['pregnancies']}}"></input>
-                <br>
-                <br>
 
-                <label for="glucose">Enter the Glucose level: (in mmol/L)</label>
-                <br>
-                <input type="number" name="glucose"
-                placeholder="Glucose"
-                value="{{request.form['glucose']}}"></input>
-                <br>
-                <br>
+        <div>
+          <label for="glucose" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Glucose Level (mmol/L)
+          </label>
+          <input 
+            type="number" 
+            name="glucose" 
+            id="glucose"
+            placeholder="e.g., 120"
+            value="{{ request.form['glucose'] if request.form['glucose'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
 
-                <label for="blood_pressure">Enter the Blood Pressure: (the lower of the two readings in mmHg)</label>
-                <br>
-                <input type="number" name="blood_pressure"
-                placeholder="Blood Pressure"
-                value="{{request.form['blood_pressure']}}"></input>
-                <br>
-                <br>
+        <div>
+          <label for="blood_pressure" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Blood Pressure (mmHg) - Lower Reading
+          </label>
+          <input 
+            type="number" 
+            name="blood_pressure" 
+            id="blood_pressure"
+            placeholder="e.g., 80"
+            value="{{ request.form['blood_pressure'] if request.form['blood_pressure'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
 
-                <label for="skin_thickness">Enter the Skin Thickness: (measurement taken from triceps)</label>
-                <br>
-                <input type="number" name="skin_thickness"
-                placeholder="Skin Thickness"
-                value="{{request.form['skin_thickness']}}"></input>
-                <br><br>
+        <div>
+          <label for="skin_thickness" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Skin Thickness (mm) - Triceps Measurement
+          </label>
+          <input 
+            type="number" 
+            name="skin_thickness" 
+            id="skin_thickness"
+            placeholder="e.g., 25"
+            value="{{ request.form['skin_thickness'] if request.form['skin_thickness'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
 
-                <label for="insulin">Enter the Insulin level: (in mIU/L)</label>
-                <br>
-                <input type="number" name="insulin"
-                placeholder="Insulin"
-                value="{{request.form['insulin']}}"></input>
-                <br><br>
+        <div>
+          <label for="insulin" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Insulin Level (mIU/L)
+          </label>
+          <input 
+            type="number" 
+            name="insulin" 
+            id="insulin"
+            placeholder="e.g., 100"
+            value="{{ request.form['insulin'] if request.form['insulin'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
 
-                <label for="bmi">Enter the Body Mass Index: (derived by dividing weight in kg by square of height in meters)</label>
-                <br>
-                <input type="number" step="any" name="bmi"
-                placeholder="BMI"
-                value="{{request.form['bmi']}}"></input>
-                <br><br>
+        <div>
+          <label for="bmi" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Body Mass Index (BMI)
+          </label>
+          <input 
+            type="number" 
+            step="any" 
+            name="bmi" 
+            id="bmi"
+            placeholder="e.g., 25.5"
+            value="{{ request.form['bmi'] if request.form['bmi'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
 
-                <label for="diabetes_pedigree_function">Enter the Diabetes Pedigree Function value:</label>
-                <br>
-                <input type="number" step="any" name="dpf"
-                placeholder="Diabetes Pedigree Function"
-                value="{{request.form['dpf']}}"></input>
+        <div>
+          <label for="dpf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Diabetes Pedigree Function
+          </label>
+          <input 
+            type="number" 
+            step="any" 
+            name="dpf" 
+            id="dpf"
+            placeholder="e.g., 0.5"
+            value="{{ request.form['dpf'] if request.form['dpf'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
 
-                <br><br>
+        <div>
+          <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Age
+          </label>
+          <input 
+            type="number" 
+            name="age" 
+            id="age"
+            placeholder="e.g., 35"
+            value="{{ request.form['age'] if request.form['age'] else '' }}"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            required
+          >
+        </div>
+      </div>
+      
+      <button 
+        type="submit" 
+        class="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+      >
+        Get Prediction
+      </button>
+    </form>
 
-                <label for="age">Enter Age:</label>
-                <br>
-                <input type="number" name="age"
-                placeholder="Age"
-                value="{{request.form['age']}}"></input>
-
-                <br><br>
-                <button type="submit">Submit</button>
-            </form>
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul>
-                        {% for message in messages %}
-                        <li>{{ message }}</li>
-                        {% endfor %}
-                     </ul>
-                {% endif %}
-            {% endwith %}
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="mt-6 space-y-2">
+          {% for message in messages %}
+            <div class="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-700 dark:text-red-300">
+              {{ message }}
             </div>
-    
-            <script>
-                window.onscroll = function() {myFunction()};
-                var header = document.getElementById("myHeader");
-                var sticky = header.offsetTop;
-
-                function myFunction() {
-                    if (window.pageYOffset > sticky) {
-                        header.classList.add("sticky");
-                    }
-                    else {
-                        header.classList.remove("sticky");
-                    }
-                }
-            </script>
-        </body>
-</html>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}

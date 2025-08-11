@@ -1,363 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S&P 500 Stock Forecasts</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
+{% block title %}S&P 500 Forecasts{% endblock %}
+{% block content %}
+  {% if error %}
+    <div class="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm">{{ error }}</div>
+  {% endif %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header h2 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .header a {
-            color: #3498db;
-            text-decoration: none;
-            margin-right: 2rem;
-            transition: color 0.3s ease;
-        }
-
-        .header a:hover {
-            color: #2980b9;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-        }
-
-        .search-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-box {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .search-btn {
-            padding: 1rem 2rem;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.3s ease;
-        }
-
-        .search-btn:hover {
-            background: #2980b9;
-        }
-
-        .forecasts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-        }
-
-        .forecast-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .forecast-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .ticker-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .ticker-symbol {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .prediction-change {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .prediction-up {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .prediction-down {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .prediction-neutral {
-            background: #e2e3e5;
-            color: #383d41;
-        }
-
-        .forecast-details {
-            margin-top: 1rem;
-        }
-
-        .forecast-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .forecast-row:last-child {
-            border-bottom: none;
-        }
-
-        .forecast-label {
-            color: #7f8c8d;
-        }
-
-        .forecast-value {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: #7f8c8d;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-        }
-
-        .last-updated {
-            text-align: center;
-            color: #7f8c8d;
-            margin-top: 2rem;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-            
-            .search-box {
-                flex-direction: column;
-            }
-            
-            .forecasts-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h2>Aditya Rana's S&P 500 Stock Forecasts</h2>
-        <a href="/">Home</a>
-        <a href="/LSTM">LSTM Stock Prediction</a>
-        <a href="/Diabetes">Diabetes Classification</a>
-        <a href="https://www.linkedin.com/in/adityarana-043625241/" target="_blank">LinkedIn Profile</a>
-        <a href="https://github.com/adityarana-ar" target="_blank">GitHub Profile</a>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-3xl font-semibold">{{ total_forecasts }}</div>
+      <div class="text-sm text-gray-500 dark:text-gray-400">Total Forecasts</div>
     </div>
-
-    <div class="container">
-        {% if error %}
-        <div class="error">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">{{ total_forecasts }}</div>
-                <div class="stat-label">Total Forecasts</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ last_updated_count }}</div>
-                <div class="stat-label">Updated Today</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ avg_prediction_change|round(2) }}%</div>
-                <div class="stat-label">Avg Prediction Change</div>
-            </div>
-        </div>
-
-        <div class="search-section">
-            <h3>Search S&P 500 Stocks</h3>
-            <div class="search-box">
-                <input type="text" id="searchInput" class="search-input" placeholder="Enter ticker symbol (e.g., AAPL, MSFT, GOOGL)">
-                <button onclick="searchStocks()" class="search-btn">Search</button>
-            </div>
-            <p>Enter a ticker symbol to filter the forecasts below. Leave empty to show all forecasts.</p>
-	    <p>This is still a work in progress. Expect improvements shortly.</p>	</div>
-
-        {% if forecasts %}
-        <div class="forecasts-grid" id="forecastsGrid">
-            {% for ticker, forecast in forecasts.items() %}
-            <div class="forecast-card" data-ticker="{{ ticker }}">
-                <div class="ticker-header">
-                    <div class="ticker-symbol">{{ ticker }}</div>
-                    {% if forecast.next_day_prediction and forecast.current_price %}
-                        {% set change = ((forecast.next_day_prediction - forecast.current_price) / forecast.current_price * 100) %}
-                        <div class="prediction-change {% if change > 0 %}prediction-up{% elif change < 0 %}prediction-down{% else %}prediction-neutral{% endif %}">
-                            {{ "%.2f"|format(change) }}%
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <div class="forecast-details">
-                    {% if forecast.next_day_prediction %}
-                    <div class="forecast-row">
-                        <span class="forecast-label">Next Day Prediction:</span>
-                        <span class="forecast-value">${{ "%.2f"|format(forecast.next_day_prediction) }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if forecast.current_price %}
-                    <div class="forecast-row">
-                        <span class="forecast-label">Current Price:</span>
-                        <span class="forecast-value">${{ "%.2f"|format(forecast.current_price) }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if forecast.last_updated %}
-                    <div class="forecast-row">
-                        <span class="forecast-label">Last Updated:</span>
-                        <span class="forecast-value">{{ forecast.last_updated }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="loading">
-            <h3>Loading forecasts...</h3>
-            <p>This may take a few moments as we prepare the latest S&P 500 forecasts.</p>
-        </div>
-        {% endif %}
-
-        {% if last_update %}
-        <div class="last-updated">
-            Last system update: {{ last_update }}
-        </div>
-        {% endif %}
+    <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-3xl font-semibold">{{ last_updated_count }}</div>
+      <div class="text-sm text-gray-500 dark:text-gray-400">Updated Today</div>
     </div>
+    <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-3xl font-semibold">{{ avg_prediction_change|round(2) }}%</div>
+      <div class="text-sm text-gray-500 dark:text-gray-400">Avg Prediction Change</div>
+    </div>
+  </div>
 
-    <script>
-        function searchStocks() {
-            const searchTerm = document.getElementById('searchInput').value.toUpperCase();
-            const forecastCards = document.querySelectorAll('.forecast-card');
-            
-            forecastCards.forEach(card => {
-                const ticker = card.getAttribute('data-ticker');
-                if (ticker.includes(searchTerm) || searchTerm === '') {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
+  <div class="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div class="flex flex-wrap items-center gap-3">
+      <input id="searchInput" class="flex-1 min-w-[220px] rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-800 dark:bg-gray-900" placeholder="Enter ticker symbol (e.g., AAPL, MSFT, GOOGL)" />
+      <button onclick="searchStocks()" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500">Search</button>
+    </div>
+    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">Enter a ticker symbol to filter the forecasts. Leave empty to show all.</div>
+  </div>
 
-        // Allow search on Enter key
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchStocks();
-            }
-        });
+  {% if forecasts %}
+  <div id="forecastsGrid" class="mt-4 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for ticker, forecast in forecasts.items() %}
+      {% set change = ( (forecast.next_day_prediction - forecast.current_price) / forecast.current_price * 100 ) if (forecast.next_day_prediction and forecast.current_price) else None %}
+      <div data-ticker="{{ ticker }}" class="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold">{{ ticker }}</h3>
+          {% if change is not none %}
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+              {% if change > 0 %} bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300
+              {% elif change < 0 %} bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300
+              {% else %} bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+              {{ "%.2f"|format(change) }}%
+            </span>
+          {% endif %}
+        </div>
+        <div class="mt-3 space-y-1 text-sm">
+          {% if forecast.next_day_prediction %}<div>Next Day: ${{ "%.2f"|format(forecast.next_day_prediction) }}</div>{% endif %}
+          {% if forecast.current_price %}<div>Current: ${{ "%.2f"|format(forecast.current_price) }}</div>{% endif %}
+          {% if forecast.last_updated %}<div class="text-gray-500 dark:text-gray-400 text-xs">Updated: {{ forecast.last_updated }}</div>{% endif %}
+        </div>
+        <div class="mt-auto"></div>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="mt-4 rounded-xl border border-gray-200 bg-white p-5 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h3 class="text-base font-medium">Loading forecasts...</h3>
+    <p class="text-gray-600 dark:text-gray-300">This may take a few moments as we prepare the latest S&P 500 forecasts.</p>
+  </div>
+  {% endif %}
 
-        // Auto-refresh every 5 minutes
-        setInterval(function() {
-            location.reload();
-        }, 300000);
-    </script>
-</body>
-</html>
+  {% if last_update %}
+  <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">Last system update: {{ last_update }}</div>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function searchStocks() {
+    const input = document.getElementById('searchInput');
+    const searchTerm = (input?.value || '').toUpperCase();
+    const cards = document.querySelectorAll('[data-ticker]');
+    cards.forEach(card => {
+      const t = card.getAttribute('data-ticker');
+      card.style.display = (!searchTerm || t.includes(searchTerm)) ? 'block' : 'none';
+    });
+  }
+  document.getElementById('searchInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') searchStocks();
+  });
+  setInterval(() => location.reload(), 300000);
+</script>
+{% endblock %}

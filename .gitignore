@@ -5,3 +5,4 @@ static/Image/verification.png
 forecast_data/*
 *.png
 *.jpg
+__pycache__/
