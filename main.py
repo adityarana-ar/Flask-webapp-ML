@@ -373,6 +373,11 @@ def lstm_progress(ticker):
 lstm_results_cache = {}
 lstm_status = {}
 
+# Add a lock for thread safety when accessing shared resources
+import threading
+
+lstm_lock = threading.Lock()
+
 
 @app.route("/LSTM/stream/<ticker>")
 @dont_cache()
@@ -595,7 +600,10 @@ def lstm_stream(ticker):
             )
             plt.legend()
             os.makedirs("static/Image", exist_ok=True)
-            verification_path = os.path.join("static/Image", "verification.png")
+            # Make image paths unique per ticker to avoid conflicts
+            verification_path = os.path.join(
+                "static/Image", f"verification_{ticker}.png"
+            )
             figure.savefig(verification_path)
             futurecandles = 10
             futuredates = pd.date_range(
@@ -613,8 +621,12 @@ def lstm_stream(ticker):
                 label="Future closing prices prediction",
             )
             plt.legend()
-            prediction_path = os.path.join("static/Image", "prediction.png")
+            prediction_path = os.path.join("static/Image", f"prediction_{ticker}.png")
             figure1.savefig(prediction_path)
+
+            # Close figures to free memory
+            plt.close(figure)
+            plt.close(figure1)
 
             lstm_status[ticker] = {
                 "step": 9,
@@ -650,6 +662,27 @@ def lstm_stream(ticker):
             if ticker in active_lstm_sessions:
                 del active_lstm_sessions[ticker]
 
+            # Clean up old image files (keep only the most recent ones)
+            try:
+                import glob
+
+                # Keep only the last 10 image files per type to prevent disk space issues
+                for pattern in [
+                    f"static/Image/verification_*.png",
+                    f"static/Image/prediction_*.png",
+                ]:
+                    files = glob.glob(pattern)
+                    if len(files) > 10:
+                        # Sort by modification time and remove oldest
+                        files.sort(key=lambda x: os.path.getmtime(x))
+                        for old_file in files[:-10]:
+                            try:
+                                os.remove(old_file)
+                            except:
+                                pass  # Ignore errors if file is already deleted
+            except Exception as e:
+                print(f"Error cleaning up old image files: {e}")
+
     return Response(generate(), mimetype="text/plain")
 
 
@@ -658,9 +691,9 @@ def lstm_stream(ticker):
 def lstm_results(ticker):
     """Display LSTM results"""
     try:
-        # Check if the image files exist
-        verification_path = os.path.join("static/Image", "verification.png")
-        prediction_path = os.path.join("static/Image", "prediction.png")
+        # Check if the ticker-specific image files exist
+        verification_path = os.path.join("static/Image", f"verification_{ticker}.png")
+        prediction_path = os.path.join("static/Image", f"prediction_{ticker}.png")
 
         if not os.path.exists(verification_path) or not os.path.exists(prediction_path):
             flash("Results not found. Please try running the prediction again.")
@@ -668,8 +701,8 @@ def lstm_results(ticker):
 
         return render_template(
             "LSTM_Results.html",
-            img1="/static/Image/verification.png",
-            img2="/static/Image/prediction.png",
+            img1=f"/static/Image/verification_{ticker}.png",
+            img2=f"/static/Image/prediction_{ticker}.png",
             ticker=ticker,
         )
     except Exception as e:
@@ -818,7 +851,10 @@ def LSTM_legacy():
             )
             plt.legend()
             os.makedirs("static/Image", exist_ok=True)
-            verification_path = os.path.join("static/Image", "verification.png")
+            # Make image paths unique per ticker to avoid conflicts
+            verification_path = os.path.join(
+                "static/Image", f"verification_{ticker}.png"
+            )
             figure.savefig(verification_path)
             futurecandles = 10
             futuredates = pd.date_range(
@@ -836,12 +872,17 @@ def LSTM_legacy():
                 label="Future closing prices prediction",
             )
             plt.legend()
-            prediction_path = os.path.join("static/Image", "prediction.png")
+            prediction_path = os.path.join("static/Image", f"prediction_{ticker}.png")
             figure1.savefig(prediction_path)
+
+            # Close figures to free memory
+            plt.close(figure)
+            plt.close(figure1)
+
             return render_template(
                 "LSTM_Results.html",
-                img1=verification_path,
-                img2=prediction_path,
+                img1=f"/static/Image/verification_{ticker}.png",
+                img2=f"/static/Image/prediction_{ticker}.png",
                 ticker=raw_ticker,
             )
         except Exception as e:
