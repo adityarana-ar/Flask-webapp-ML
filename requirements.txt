@@ -12,3 +12,4 @@ seaborn
 pillow
 Flask-Caching>=2.1.0
 redis
+lxml>=4.9.0
