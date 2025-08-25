@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Loading S&P 500 Forecasts · Aditya Rana{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div class="text-center space-y-4">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Loading S&P 500 Forecasts</h1>
+    <p class="text-lg text-gray-600 dark:text-gray-300">Preparing the latest stock market predictions</p>
+  </div>
+
+  <!-- Progress Section -->
+  <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div class="text-center space-y-6">
+      <!-- Spinner -->
+      <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mx-auto" id="spinner"></div>
+      
+      <!-- Status -->
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2" id="statusTitle">
+          Initializing...
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-300" id="statusMessage">
+          Starting to load S&P 500 forecasts...
+        </p>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div class="w-full max-w-md mx-auto">
+        <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <span>Progress</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700">
+          <div class="bg-indigo-600 h-3 rounded-full transition-all duration-500 ease-out" id="progressBar" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <!-- Estimated Time -->
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        <p>Estimated time: <span id="estimatedTime">10-30 seconds</span></p>
+        <p>Please don't close this page or refresh the browser.</p>
+      </div>
+      
+      <!-- Error Display -->
+      <div id="errorDisplay" class="hidden">
+        <div class="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <p id="errorMessage"></p>
+          <button onclick="window.location.href='/'" class="mt-2 text-red-600 hover:text-red-500 underline">
+            ← Back to Home
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps Overview -->
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <h2 class="text-xl font-semibold mb-4">Loading Steps</h2>
+    <div class="space-y-3">
+      <div class="flex items-center space-x-3" data-step="1">
+        <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs step-indicator">1</div>
+        <span class="text-sm text-gray-600 dark:text-gray-300">Loading cached forecasts</span>
+      </div>
+      <div class="flex items-center space-x-3" data-step="2">
+        <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs step-indicator">2</div>
+        <span class="text-sm text-gray-600 dark:text-gray-300">Fetching current prices</span>
+      </div>
+      <div class="flex items-center space-x-3" data-step="3">
+        <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs step-indicator">3</div>
+        <span class="text-sm text-gray-600 dark:text-gray-300">Calculating price changes</span>
+      </div>
+      <div class="flex items-center space-x-3" data-step="4">
+        <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs step-indicator">4</div>
+        <span class="text-sm text-gray-600 dark:text-gray-300">Preparing display data</span>
+      </div>
+      <div class="flex items-center space-x-3" data-step="5">
+        <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs step-indicator">5</div>
+        <span class="text-sm text-gray-600 dark:text-gray-300">Finalizing results</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let isCompleted = false;
+let pollInterval;
+
+function updateProgress(data) {
+  const statusTitle = document.getElementById('statusTitle');
+  const statusMessage = document.getElementById('statusMessage');
+  const progressBar = document.getElementById('progressBar');
+  const progressPercent = document.getElementById('progressPercent');
+  const errorDisplay = document.getElementById('errorDisplay');
+  const errorMessage = document.getElementById('errorMessage');
+  const spinner = document.getElementById('spinner');
+
+  if (data.step === 'error') {
+    isCompleted = true;
+    clearInterval(pollInterval);
+    statusTitle.textContent = 'Error Loading Forecasts';
+    statusTitle.className = 'text-xl font-semibold text-red-600 dark:text-red-400 mb-2';
+    statusMessage.textContent = data.message || 'An error occurred while loading forecasts.';
+    errorDisplay.classList.remove('hidden');
+    errorMessage.textContent = data.message || 'Unknown error occurred.';
+    spinner.classList.remove('animate-spin');
+    return;
+  }
+
+  if (data.step === 'complete') {
+    isCompleted = true;
+    clearInterval(pollInterval);
+    statusTitle.textContent = 'Loading Complete!';
+    statusTitle.className = 'text-xl font-semibold text-green-600 dark:text-green-400 mb-2';
+    statusMessage.textContent = 'Redirecting to results...';
+    progressBar.style.width = '100%';
+    progressPercent.textContent = '100%';
+    spinner.classList.remove('animate-spin');
+    
+    // Redirect to results
+    if (data.redirect) {
+      setTimeout(() => {
+        window.location.href = data.redirect;
+      }, 1000);
+    }
+    return;
+  }
+
+  // Update progress
+  if (data.progress !== undefined) {
+    progressBar.style.width = data.progress + '%';
+    progressPercent.textContent = data.progress + '%';
+  }
+
+  // Update status
+  if (data.message) {
+    statusMessage.textContent = data.message;
+  }
+
+  // Update step indicators
+  if (data.step && typeof data.step === 'number') {
+    updateStepIndicators(data.step);
+  }
+}
+
+function updateStepIndicators(currentStep) {
+  const indicators = document.querySelectorAll('.step-indicator');
+  indicators.forEach((indicator, index) => {
+    const stepNumber = index + 1;
+    if (stepNumber <= currentStep) {
+      indicator.className = 'w-6 h-6 rounded-full bg-indigo-600 border-2 border-indigo-600 flex items-center justify-center text-xs text-white';
+      indicator.textContent = '✓';
+    } else {
+      indicator.className = 'w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs step-indicator';
+      indicator.textContent = stepNumber;
+    }
+  });
+}
+
+function pollProgress() {
+  fetch('/SP500/stream')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then(text => {
+      // Parse SSE data
+      const lines = text.split('\n');
+      let hasValidData = false;
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.substring(6));
+            hasValidData = true;
+            updateProgress(data);
+            if (data.step === 'complete' || data.step === 'error') {
+              break;
+            }
+          } catch (e) {
+            console.error('Error parsing SSE data:', e);
+          }
+        }
+      }
+      
+      // If we got valid data, reset any connection error messages
+      if (hasValidData) {
+        statusTitle.textContent = 'Loading S&P 500 Forecasts...';
+        statusTitle.className = 'text-xl font-semibold text-indigo-600 dark:text-indigo-400 mb-2';
+        errorDisplay.classList.add('hidden');
+      }
+    })
+    .catch(error => {
+      console.error('Error polling progress:', error);
+      if (!isCompleted) {
+        // Only show connection message, don't trigger error display
+        statusMessage.textContent = 'Connection lost, but loading continues on the server...';
+        // Keep the title as loading, not error
+        statusTitle.textContent = 'Loading S&P 500 Forecasts...';
+        statusTitle.className = 'text-xl font-semibold text-indigo-600 dark:text-indigo-400 mb-2';
+        errorDisplay.classList.add('hidden');
+      }
+    });
+}
+
+// Start polling every 2 seconds
+pollInterval = setInterval(pollProgress, 2000);
+
+// Initial poll
+pollProgress();
+
+// Prevent page refresh/close during processing
+window.addEventListener('beforeunload', function(e) {
+  if (!isCompleted) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+</script>
+{% endblock %}

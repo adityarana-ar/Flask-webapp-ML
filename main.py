@@ -234,10 +234,201 @@ cache = Cache(
 )
 
 
-@cache.cached(timeout=600)  # cache the rendered page for 10 minutes
 @app.route("/SP500", methods=("GET", "POST"))
+@dont_cache()
 def sp500_forecasts():
-    """Display S&P 500 stock forecasts quickly (no heavy work in request)."""
+    """Display S&P 500 stock forecasts with loading screen."""
+    # Redirect to progress page first
+    return redirect(url_for("sp500_progress"))
+
+
+@app.route("/SP500/progress")
+@dont_cache()
+def sp500_progress():
+    """Progress page for SP500 loading"""
+    return render_template("SP500_Progress.html")
+
+
+# Global storage for SP500 loading status
+sp500_status = {}
+
+
+@app.route("/SP500/stream")
+@dont_cache()
+def sp500_stream():
+    """Streaming endpoint for SP500 loading"""
+
+    def generate():
+        try:
+            from datetime import datetime  # local import to avoid global clutter
+
+            # Step 1: Loading cached forecasts
+            sp500_status["step"] = 1
+            sp500_status["message"] = "Loading cached forecasts..."
+            sp500_status["progress"] = 20
+            yield 'data: {"step": 1, "message": "Loading cached forecasts...", "progress": 20}\n\n'
+
+            # 1) Load precomputed forecasts from disk
+            all_forecasts = forecaster.get_all_forecasts()
+            if not all_forecasts:
+                sp500_status["step"] = "error"
+                sp500_status["message"] = (
+                    "No cached forecasts found. They may still be generating in the background."
+                )
+                yield 'data: {"step": "error", "message": "No cached forecasts found. They may still be generating in the background."}\n\n'
+                return
+
+            # Step 2: Fetching current prices
+            sp500_status["step"] = 2
+            sp500_status["message"] = "Fetching current prices..."
+            sp500_status["progress"] = 40
+            yield 'data: {"step": 2, "message": "Fetching current prices...", "progress": 40}\n\n'
+
+            # 2) Get current prices via your TTL cache (single shot for all tickers)
+            tickers = list(all_forecasts.keys())
+            prices = forecaster.get_intraday_prices(tickers) or {}
+
+            # Step 3: Calculating price changes
+            sp500_status["step"] = 3
+            sp500_status["message"] = "Calculating price changes..."
+            sp500_status["progress"] = 60
+            yield 'data: {"step": 3, "message": "Calculating price changes...", "progress": 60}\n\n'
+
+            forecasts_with_prices = {}
+            total_forecasts = len(all_forecasts)
+            last_updated_count = 0
+            prediction_changes = []
+
+            for ticker, forecast_df in all_forecasts.items():
+                try:
+                    next_day_prediction = (
+                        float(forecast_df.iloc[0]["Predicted_Close"])
+                        if not forecast_df.empty
+                        else None
+                    )
+
+                    # Price from cached dict (may be None if unavailable)
+                    price = prices.get(ticker)
+
+                    change_percentage = None
+                    if (
+                        price is not None
+                        and next_day_prediction is not None
+                        and price != 0
+                    ):
+                        change_percentage = (
+                            (next_day_prediction - price) / price
+                        ) * 100.0
+                        prediction_changes.append(change_percentage)
+
+                    # File mtime → last updated stamp, and count today's updates
+                    last_updated = None
+                    forecast_path = os.path.join(
+                        forecaster.predictions_dir, f"{ticker}_forecast.csv"
+                    )
+                    if os.path.exists(forecast_path):
+                        file_time = datetime.fromtimestamp(
+                            os.path.getmtime(forecast_path)
+                        )
+                        if file_time.date() == datetime.now().date():
+                            last_updated_count += 1
+                        last_updated = file_time.strftime("%Y-%m-%d %H:%M")
+
+                    forecasts_with_prices[ticker] = {
+                        "next_day_prediction": next_day_prediction,
+                        "current_price": price,
+                        "change_percentage": change_percentage,
+                        "last_updated": last_updated,
+                    }
+                except Exception as inner_e:
+                    print(f"Error processing {ticker}: {inner_e}")
+                    continue
+
+            # Step 4: Preparing display data
+            sp500_status["step"] = 4
+            sp500_status["message"] = "Preparing display data..."
+            sp500_status["progress"] = 80
+            yield 'data: {"step": 4, "message": "Preparing display data...", "progress": 80}\n\n'
+
+            avg_prediction_change = (
+                (sum(prediction_changes) / len(prediction_changes))
+                if prediction_changes
+                else 0
+            )
+            last_update = (
+                forecaster.last_update.strftime("%Y-%m-%d %H:%M")
+                if forecaster.last_update
+                else None
+            )
+
+            # Step 5: Finalizing results
+            sp500_status["step"] = 5
+            sp500_status["message"] = "Finalizing results..."
+            sp500_status["progress"] = 90
+            yield 'data: {"step": 5, "message": "Finalizing results...", "progress": 90}\n\n'
+
+            # Store results for later access
+            sp500_status["results"] = {
+                "forecasts": forecasts_with_prices,
+                "total_forecasts": total_forecasts,
+                "last_updated_count": last_updated_count,
+                "avg_prediction_change": avg_prediction_change,
+                "last_update": last_update,
+            }
+
+            # Send completion message
+            sp500_status["step"] = "complete"
+            sp500_status["message"] = "Loading complete! Redirecting to results..."
+            sp500_status["progress"] = 100
+            yield 'data: {"step": "complete", "message": "Loading complete! Redirecting to results...", "progress": 100, "redirect": "/SP500/results"}\n\n'
+
+        except Exception as e:
+            import traceback
+
+            print("Exception in SP500 progress:", e)
+            traceback.print_exc()
+            sp500_status["step"] = "error"
+            sp500_status["message"] = f"Error: {str(e)}"
+            yield f'data: {{"step": "error", "message": "Error: {str(e)}"}}\n\n'
+
+    return Response(generate(), mimetype="text/plain")
+
+
+@app.route("/SP500/results")
+@dont_cache()
+def sp500_results():
+    """Display SP500 results"""
+    try:
+        # Check if we have results from the streaming process
+        if "results" not in sp500_status:
+            # Fallback to direct loading if no streaming results
+            return sp500_forecasts_direct()
+
+        results = sp500_status["results"]
+
+        return render_template(
+            "SP500_Results.html",
+            forecasts=results["forecasts"],
+            total_forecasts=results["total_forecasts"],
+            last_updated_count=results["last_updated_count"],
+            avg_prediction_change=results["avg_prediction_change"],
+            last_update=results["last_update"],
+        )
+    except Exception as e:
+        print(f"Error in SP500 results: {e}")
+        return render_template(
+            "SP500_Results.html",
+            error=f"Error displaying results: {str(e)}",
+            forecasts={},
+            total_forecasts=0,
+            last_updated_count=0,
+            avg_prediction_change=0,
+            last_update=None,
+        )
+
+
+def sp500_forecasts_direct():
+    """Direct SP500 forecasts loading (fallback method)"""
     from datetime import datetime  # local import to avoid global clutter
 
     try:
@@ -325,7 +516,7 @@ def sp500_forecasts():
         )
 
     except Exception as e:
-        print(f"Error in SP500 route: {e}")
+        print(f"Error in SP500 direct route: {e}")
         return render_template(
             "SP500_Results.html",
             error=f"Error loading forecasts: {str(e)}",
